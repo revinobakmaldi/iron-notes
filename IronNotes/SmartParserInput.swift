@@ -210,8 +210,9 @@ struct SmartParserInput: View {
     }
     
     private var setNumberDisplay: some View {
-        HStack(spacing: 12) {
-            Text("Set #\(setCount)")
+        let nextSetNumber = (exercise?.sets.count ?? 0) + 1
+        return HStack(spacing: 12) {
+            Text("Set #\(nextSetNumber)")
                 .font(.headline)
                 .foregroundColor(.gray)
         }
