@@ -119,6 +119,7 @@ struct SettingsView: View {
         }
     }
     
+    @ViewBuilder
     private func masterExercisesList(for muscleGroup: MuscleGroup) -> some View {
         let exercises = settings.getExercises(for: muscleGroup)
         
