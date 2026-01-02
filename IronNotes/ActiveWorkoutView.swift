@@ -9,6 +9,7 @@ struct ActiveWorkoutView: View {
     @State private var showRestTimer = false
     @State private var showAddExercise = false
     @State private var showFinishWorkout = false
+    @State private var selectedExerciseID: UUID?
     @FocusState private var inputFocused: Bool
     
     var body: some View {
@@ -64,8 +65,19 @@ struct ActiveWorkoutView: View {
                                         exerciseName: exercise.exerciseName,
                                         context: modelContext
                                     )
+                                    let isSelected = selectedExerciseID == exercise.id
                                     
-                                    ExerciseCard(exercise: exercise, previousSets: previousSets)
+                                    Button(action: {
+                                        HapticManager.light()
+                                        selectedExerciseID = exercise.id
+                                    }) {
+                                        ExerciseCard(
+                                            exercise: exercise,
+                                            previousSets: previousSets,
+                                            isSelected: isSelected
+                                        )
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
                                 }
                             }
                             .padding(.horizontal)
@@ -76,6 +88,7 @@ struct ActiveWorkoutView: View {
                 .safeAreaInset(edge: .bottom) {
                     SmartParserInput(
                         inputText: $inputText,
+                        selectedExercise: getSelectedExercise(),
                         onSubmit: handleInputSubmit
                     )
                 }
@@ -112,13 +125,20 @@ struct ActiveWorkoutView: View {
         }
     }
     
+    private func getSelectedExercise() -> ExerciseLog? {
+        guard let selectedID = selectedExerciseID else {
+            return session.exercises.first
+        }
+        return session.exercises.first { $0.id == selectedID }
+    }
+    
     private func handleInputSubmit() {
         guard let parsedSet = WorkoutParser.parse(inputText) else {
             HapticManager.error()
             return
         }
         
-        guard let exercise = session.exercises.first else {
+        guard let exercise = getSelectedExercise() else {
             HapticManager.error()
             return
         }

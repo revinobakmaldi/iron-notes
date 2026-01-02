@@ -3,6 +3,7 @@ import SwiftUI
 struct ExerciseCard: View {
     let exercise: ExerciseLog
     var previousSets: [SetEntry] = []
+    let isSelected: Bool
     @Environment(\.modelContext) private var modelContext
     
     var body: some View {
@@ -47,8 +48,12 @@ struct ExerciseCard: View {
             }
         }
         .padding(16)
-        .background(Color.gray.opacity(0.1))
+        .background(isSelected ? Color.blue.opacity(0.1) : Color.gray.opacity(0.1))
         .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 2)
+        )
     }
     
     private var setsTable: some View {
