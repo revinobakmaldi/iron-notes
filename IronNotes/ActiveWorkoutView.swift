@@ -5,12 +5,10 @@ struct ActiveWorkoutView: View {
     let session: WorkoutSession
     @Environment(\.modelContext) private var modelContext
     
-    @State private var inputText = ""
     @State private var showRestTimer = false
     @State private var showAddExercise = false
     @State private var showFinishWorkout = false
     @State private var selectedExerciseID: UUID?
-    @FocusState private var inputFocused: Bool
     
     var body: some View {
         ZStack {
@@ -87,9 +85,8 @@ struct ActiveWorkoutView: View {
                 }
                 .safeAreaInset(edge: .bottom) {
                     SmartParserInput(
-                        inputText: $inputText,
-                        selectedExercise: getSelectedExercise(),
-                        onSubmit: handleInputSubmit
+                        exercise: getSelectedExercise(),
+                        onLog: handleLog
                     )
                 }
             }
@@ -132,22 +129,17 @@ struct ActiveWorkoutView: View {
         return session.exercises.first { $0.id == selectedID }
     }
     
-    private func handleInputSubmit() {
-        guard let parsedSet = WorkoutParser.parse(inputText) else {
-            HapticManager.error()
-            return
-        }
-        
+    private func handleLog(weight: Double, reps: Int, setCount: Int) {
         guard let exercise = getSelectedExercise() else {
             HapticManager.error()
             return
         }
         
         let setEntry = SetEntry(
-            weight: parsedSet.weight,
-            reps: parsedSet.reps,
-            setCount: exercise.sets.count + 1,
-            isSingleArm: parsedSet.isSingleArm
+            weight: weight,
+            reps: reps,
+            setCount: setCount,
+            isSingleArm: false
         )
         
         setEntry.exercise = exercise
