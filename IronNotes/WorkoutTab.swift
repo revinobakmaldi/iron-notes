@@ -1,0 +1,182 @@
+import SwiftUI
+import SwiftData
+
+struct WorkoutTab: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \WorkoutSession.date, order: .reverse) private var sessions: [WorkoutSession]
+    @State private var showNewWorkout = false
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color.black.ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: 20) {
+                        Button(action: { showNewWorkout = true }) {
+                            HStack {
+                                Image(systemName: "plus.circle.fill")
+                                    .font(.title2)
+                                Text("Start New Workout")
+                                    .font(.headline)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.headline)
+                            }
+                            .foregroundColor(.white)
+                            .padding()
+                            .background(Color.blue)
+                            .cornerRadius(16)
+                        }
+                        .padding(.horizontal)
+                        
+                        if sessions.isEmpty {
+                            VStack(spacing: 20) {
+                                Image(systemName: "figure.strengthtraining.traditional")
+                                    .font(.system(size: 80))
+                                    .foregroundColor(.gray)
+                                Text("No Workouts Yet")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                Text("Start your first workout by tapping the button above")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, 40)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 60)
+                        } else {
+                            VStack(spacing: 16) {
+                                ForEach(sessions) { session in
+                                    SessionCard(session: session)
+                                }
+                            }
+                            .padding(.horizontal)
+                            .padding(.bottom, 20)
+                        }
+                    }
+                    .padding(.top)
+                }
+            }
+            .navigationTitle("Workouts")
+            .navigationBarTitleDisplayMode(.large)
+            .background(Color.black)
+        }
+        .sheet(isPresented: $showNewWorkout) {
+            NewWorkoutSheet(isPresented: $showNewWorkout)
+        }
+    }
+}
+
+struct SessionCard: View {
+    let session: WorkoutSession
+    
+    var body: some View {
+        NavigationLink(destination: ActiveWorkoutView(session: session)) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text(session.date, format: .dateTime.month().day().year())
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    
+                    Spacer()
+                    
+                    Text(session.date, format: .dateTime.hour().minute())
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                }
+                
+                Text("\(session.exercises.count) exercises")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+                
+                if !session.exercises.isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        ForEach(session.exercises.prefix(3)) { exercise in
+                            HStack {
+                                Circle()
+                                    .fill(Color.blue)
+                                    .frame(width: 6, height: 6)
+                                Text(exercise.exerciseName)
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        
+                        if session.exercises.count > 3 {
+                            Text("+ \(session.exercises.count - 3) more")
+                                .font(.caption)
+                                .foregroundColor(.gray.opacity(0.6))
+                        }
+                    }
+                }
+            }
+            .padding()
+            .background(Color.gray.opacity(0.1))
+            .cornerRadius(12)
+        }
+    }
+}
+
+struct NewWorkoutSheet: View {
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+    @Binding var isPresented: Bool
+    
+    @State private var selectedMuscleGroup: MuscleGroup = .FULL_BODY
+    
+    var body: some View {
+        NavigationView {
+            Form {
+                Section {
+                    Picker("Muscle Group", selection: $selectedMuscleGroup) {
+                        ForEach(MuscleGroup.allCases, id: \.self) { group in
+                            Text(group.rawValue).tag(group)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                } header: {
+                    Text("New Workout")
+                }
+                
+                Section {
+                    Button("Start Fresh") {
+                        startWorkout(cloneLast: false)
+                    }
+                    .foregroundColor(.blue)
+                    
+                    Button("Clone Last Workout") {
+                        startWorkout(cloneLast: true)
+                    }
+                    .foregroundColor(.blue)
+                }
+            }
+            .navigationTitle("New Workout")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+            }
+            .background(Color.black)
+        }
+    }
+    
+    private func startWorkout(cloneLast: Bool) {
+        let session: WorkoutSession
+        
+        if cloneLast {
+            session = WorkoutSession.cloneLastSession(muscleGroup: selectedMuscleGroup, context: modelContext)
+        } else {
+            session = WorkoutSession()
+        }
+        
+        modelContext.insert(session)
+        isPresented = false
+        dismiss()
+    }
+}

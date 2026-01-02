@@ -12,7 +12,9 @@ import SwiftData
 struct IronNotesApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            WorkoutSession.self,
+            ExerciseLog.self,
+            SetEntry.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -28,5 +30,6 @@ struct IronNotesApp: App {
             ContentView()
         }
         .modelContainer(sharedModelContainer)
+        .environment(AppSettings.shared)
     }
 }
