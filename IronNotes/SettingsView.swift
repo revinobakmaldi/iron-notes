@@ -1,6 +1,10 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @Environment(AppSettings.self) private var settings
+    
+    @State private var selectedMuscleGroup = MuscleGroup.CHEST
+    @State private var showAddExercise = false
     
     var body: some View {
         ZStack {
@@ -14,7 +18,7 @@ struct SettingsView: View {
                         
                         Spacer()
                         
-                        Text("\(AppSettings.shared.restTimerDuration)s")
+                        Text("\(settings.restTimerDuration)s")
                             .foregroundColor(.gray)
                     }
                     
@@ -25,10 +29,10 @@ struct SettingsView: View {
                                 .foregroundColor(.gray)
                             
                             Slider(value: Binding(
-                                get: { Double(AppSettings.shared.restTimerDuration) },
+                                get: { Double(settings.restTimerDuration) },
                                 set: { 
-                                    AppSettings.shared.restTimerDuration = Int($0)
-                                    AppSettings.shared.saveSettings()
+                                    settings.restTimerDuration = Int($0)
+                                    settings.saveSettings()
                                 }
                             ), in: 30...300, step: 10)
                             
@@ -45,10 +49,10 @@ struct SettingsView: View {
                 
                 Section {
                     Picker("Weight Unit", selection: Binding(
-                        get: { AppSettings.shared.preferredUnit },
+                        get: { settings.preferredUnit },
                         set: { 
-                            AppSettings.shared.preferredUnit = $0
-                            AppSettings.shared.saveSettings()
+                            settings.preferredUnit = $0
+                            settings.saveSettings()
                         }
                     )) {
                         ForEach(AppSettings.WeightUnit.allCases, id: \.self) { unit in
@@ -59,6 +63,28 @@ struct SettingsView: View {
                     .foregroundColor(.white)
                 } header: {
                     Text("Units")
+                        .foregroundColor(.white)
+                }
+                
+                Section {
+                    HStack {
+                        Picker("Muscle Group", selection: $selectedMuscleGroup) {
+                            ForEach(MuscleGroup.allCases, id: \.self) { group in
+                                Text(group.rawValue).tag(group)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        
+                        Button(action: { showAddExercise = true }) {
+                            Image(systemName: "plus")
+                                .foregroundColor(.blue)
+                        }
+                        .frame(minWidth: 44, minHeight: 44)
+                    }
+                    
+                    masterExercisesList(for: selectedMuscleGroup)
+                } header: {
+                    Text("Master Exercises")
                         .foregroundColor(.white)
                 }
                 
@@ -88,5 +114,56 @@ struct SettingsView: View {
         }
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.large)
+        .sheet(isPresented: $showAddExercise) {
+            NewExerciseSheet(muscleGroup: selectedMuscleGroup)
+        }
+    }
+    
+    private func masterExercisesList(for muscleGroup: MuscleGroup) -> some View {
+        let exercises = settings.getExercises(for: muscleGroup)
+        
+        if exercises.isEmpty {
+            Text("No exercises for \(muscleGroup.rawValue)")
+                .foregroundColor(.gray)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding()
+        } else {
+            ForEach(exercises) { exercise in
+                Button(action: {
+                    settings.removeMasterExercise(exercise, from: muscleGroup)
+                    HapticManager.light()
+                }) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(exercise.name)
+                                .font(.headline)
+                                .foregroundColor(.white)
+                            
+                            HStack(spacing: 4) {
+                                if exercise.defaultWeight > 0 {
+                                    Text("\(Int(exercise.defaultWeight))kg")
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                }
+                                
+                                if exercise.defaultReps > 0 {
+                                    Text("× \(exercise.defaultReps)")
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                }
+                            }
+                        }
+                        
+                        Spacer()
+                        
+                        Image(systemName: "trash")
+                            .foregroundColor(.red)
+                    }
+                    .padding(.vertical, 8)
+                    .background(Color.gray.opacity(0.1))
+                }
+                .buttonStyle(.plain)
+            }
+        }
     }
 }
