@@ -39,11 +39,11 @@ struct ExerciseCard: View {
             
             if !previousSets.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Previous Session")
+                    Text("Previous Session Summary")
                         .font(.caption)
                         .foregroundColor(.gray)
                     
-                    previousSessionTable
+                    previousSessionSummary
                 }
             }
         }
@@ -59,23 +59,19 @@ struct ExerciseCard: View {
     private var setsTable: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("Set")
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .frame(width: 60, alignment: .center)
-                    .foregroundColor(.gray)
-                
                 Text("Weight")
                     .font(.caption)
                     .fontWeight(.bold)
-                    .frame(width: 80, alignment: .center)
+                    .frame(width: 100, alignment: .center)
                     .foregroundColor(.gray)
                 
                 Text("Reps")
                     .font(.caption)
                     .fontWeight(.bold)
-                    .frame(width: 60, alignment: .center)
+                    .frame(width: 80, alignment: .center)
                     .foregroundColor(.gray)
+                
+                Spacer()
                 
                 Text("")
                     .frame(width: 44, alignment: .trailing)
@@ -85,20 +81,17 @@ struct ExerciseCard: View {
             
             ForEach(exercise.sets.sorted(by: { $0.timestamp < $1.timestamp })) { set in
                 HStack {
-                    Text("\(set.setCount)")
-                        .font(.subheadline)
-                        .frame(width: 60, alignment: .center)
-                        .foregroundColor(.white)
-                    
                     Text("\(Int(set.weight))kg")
                         .font(.subheadline)
-                        .frame(width: 80, alignment: .center)
+                        .frame(width: 100, alignment: .center)
                         .foregroundColor(.white)
                     
                     Text("\(set.reps)")
                         .font(.subheadline)
-                        .frame(width: 60, alignment: .center)
+                        .frame(width: 80, alignment: .center)
                         .foregroundColor(.white)
+                    
+                    Spacer()
                     
                     if set.isPR {
                         Image(systemName: "star.fill")
@@ -121,64 +114,65 @@ struct ExerciseCard: View {
         )
     }
     
-    private var previousSessionTable: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Text("Set")
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .frame(width: 60, alignment: .center)
-                    .foregroundColor(.gray)
-                
-                Text("Weight")
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .frame(width: 80, alignment: .center)
-                    .foregroundColor(.gray)
-                
-                Text("Reps")
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .frame(width: 60, alignment: .center)
-                    .foregroundColor(.gray)
-                
-                Text("")
-                    .frame(width: 44)
-            }
-            .padding(.vertical, 8)
-            .background(Color.gray.opacity(0.1))
+    private var previousSessionSummary: some View {
+        let totalSets = previousSets.count
+        let totalVolume = previousSets.reduce(0.0) { sum, set in
+            sum + (set.weight * Double(set.reps))
+        }
+        let hasPR = previousSets.contains { $0.isPR }
+        
+        return HStack(spacing: 16) {
+            SummaryItem(
+                icon: "figure.strengthtraining.traditional",
+                value: "\(totalSets)",
+                label: totalSets == 1 ? "set" : "sets"
+            )
             
-            ForEach(previousSets.prefix(5).sorted(by: { $0.timestamp < $1.timestamp })) { set in
-                HStack {
-                    Text("\(set.setCount)")
-                        .font(.subheadline)
-                        .frame(width: 60, alignment: .center)
-                        .foregroundColor(.gray.opacity(0.6))
-                    
-                    Text("\(Int(set.weight))kg")
-                        .font(.subheadline)
-                        .frame(width: 80, alignment: .center)
-                        .foregroundColor(.gray.opacity(0.6))
-                    
-                    Text("\(set.reps)")
-                        .font(.subheadline)
-                        .frame(width: 60, alignment: .center)
-                        .foregroundColor(.gray.opacity(0.6))
-                    
-                    if set.isPR {
-                        Image(systemName: "star.fill")
-                            .font(.system(size: 16))
-                            .foregroundColor(.gray.opacity(0.4))
-                            .frame(width: 44, alignment: .trailing)
-                    } else {
-                        Text("")
-                            .frame(width: 44)
-                    }
+            SummaryItem(
+                icon: "scalemass",
+                value: "\(Int(totalVolume))kg",
+                label: "volume"
+            )
+            
+            if hasPR {
+                HStack(spacing: 4) {
+                    Image(systemName: "star.fill")
+                        .foregroundColor(.yellow)
+                        Text("PR achieved!")
+                        .font(.caption)
+                        .foregroundColor(.yellow)
                 }
-                .padding(.vertical, 8)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.yellow.opacity(0.1))
+                .cornerRadius(6)
             }
         }
-        .cornerRadius(12)
-        .opacity(0.6)
+        .padding()
+        .background(Color.gray.opacity(0.05))
+        .cornerRadius(8)
+    }
+}
+
+struct SummaryItem: View {
+    let icon: String
+    let value: String
+    let label: String
+    
+    var body: some View {
+        VStack(spacing: 2) {
+            Image(systemName: icon)
+                .font(.caption)
+                .foregroundColor(.gray.opacity(0.5))
+            
+            Text(value)
+                .font(.headline)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+            
+            Text(label)
+                .font(.caption2)
+                .foregroundColor(.gray)
+        }
     }
 }
