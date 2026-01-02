@@ -148,7 +148,8 @@ struct ActiveWorkoutView: View {
         PRCalculator.checkAndMarkPR(
             for: setEntry,
             exerciseName: exercise.exerciseName,
-            context: modelContext
+            context: modelContext,
+            sessionDate: session.date
         )
         
         showRestTimer = true

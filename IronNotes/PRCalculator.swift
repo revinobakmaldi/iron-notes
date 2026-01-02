@@ -6,7 +6,8 @@ class PRCalculator {
     static func checkAndMarkPR(
         for setEntry: SetEntry,
         exerciseName: String,
-        context: ModelContext
+        context: ModelContext,
+        sessionDate: Date
     ) {
         let descriptor = FetchDescriptor<SetEntry>(
             sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
@@ -16,16 +17,30 @@ class PRCalculator {
             return
         }
         
+        let current1RM = setEntry.estimated1RM
+        
         let exerciseSets = allSets.filter { set in
             guard let exercise = set.exercise else { return false }
             return exercise.exerciseName == exerciseName && set.id != setEntry.id
         }
         
-        let current1RM = setEntry.estimated1RM
-        
         let historicalMax = exerciseSets.map { $0.estimated1RM }.max() ?? 0.0
         
-        setEntry.isPR = current1RM > historicalMax
+        let setsInCurrentSession = allSets.filter { set in
+            guard let exercise = set.exercise else { return false }
+            let session = exercise.session
+            return exercise.exerciseName == exerciseName && 
+                   session?.date == sessionDate && 
+                   set.id != setEntry.id
+        }
+        
+        let currentSessionHasPR = setsInCurrentSession.contains { $0.isPR }
+        
+        if currentSessionHasPR {
+            setEntry.isPR = false
+        } else {
+            setEntry.isPR = current1RM > historicalMax
+        }
     }
     
     static func calculateEstimated1RM(weight: Double, reps: Int) -> Double {
