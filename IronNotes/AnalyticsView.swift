@@ -4,7 +4,8 @@ import Charts
 
 struct AnalyticsView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \WorkoutSession.date, order: .forward) private var sessions: [WorkoutSession]
+    @Query(sort: \WorkoutSession.date, order: .reverse) private var sessions: [WorkoutSession]
+    @Environment(AppSettings.self) private var settings
     
     @State private var selectedExercise: String = ""
     
@@ -203,12 +204,14 @@ struct AnalyticsView: View {
     }
 }
 
-struct VolumeDataPoint {
+struct VolumeDataPoint: Identifiable {
+    let id = UUID()
     let muscleGroup: MuscleGroup
     let volume: Int
 }
 
-struct PRDataPoint {
+struct PRDataPoint: Identifiable {
+    let id = UUID()
     let date: Date
     let est1RM: Double
 }
