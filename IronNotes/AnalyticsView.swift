@@ -135,7 +135,7 @@ struct AnalyticsView: View {
                         y: .value("1RM", data.est1RM)
                     )
                     .foregroundStyle(Color.blue)
-                    .annotation(position: .top, spacing: 16) {
+                    .annotation(position: .top) {
                         Text("\(Int(data.est1RM)) \(AppSettings.shared.preferredUnit.rawValue)")
                             .font(.caption)
                             .foregroundColor(.gray)
