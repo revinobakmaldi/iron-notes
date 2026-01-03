@@ -212,16 +212,16 @@ struct AddExerciseSheet: View {
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(exercise.name)
                                             .font(.headline)
-                                            .foregroundColor(.white)
+                                            .foregroundColor(.primary)
                                         
                                         if exercise.defaultWeight > 0 {
                                             HStack(spacing: 4) {
                                                 Text("\(Int(exercise.defaultWeight))kg")
                                                     .font(.caption)
-                                                    .foregroundColor(.gray)
+                                                    .foregroundColor(.secondary)
                                                 Text("× \(exercise.defaultReps)")
                                                     .font(.caption)
-                                                    .foregroundColor(.gray)
+                                                    .foregroundColor(.secondary)
                                             }
                                         }
                                     }
@@ -232,6 +232,7 @@ struct AddExerciseSheet: View {
                                         .foregroundColor(.blue)
                                 }
                                 .padding(.vertical, 12)
+                                .listRowBackground(Color.black)
                             }
                         }
                     }
