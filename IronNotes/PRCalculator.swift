@@ -2,7 +2,7 @@ import Foundation
 import SwiftData
 
 class PRCalculator {
-    
+
     static func checkAndMarkPR(
         for setEntry: SetEntry,
         exerciseName: String,
@@ -12,32 +12,40 @@ class PRCalculator {
         let descriptor = FetchDescriptor<SetEntry>(
             sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
         )
-        
+
         guard let allSets = try? context.fetch(descriptor) else {
             return
         }
-        
+
         let current1RM = setEntry.estimated1RM
-        
+
         let exerciseSets = allSets.filter { set in
             guard let exercise = set.exercise else { return false }
             return exercise.exerciseName == exerciseName && set.id != setEntry.id
         }
-        
+
         let historicalMax = exerciseSets.map { $0.estimated1RM }.max() ?? 0.0
-        
+
         let setsInCurrentSession = allSets.filter { set in
             guard let exercise = set.exercise else { return false }
             let session = exercise.session
-            return exercise.exerciseName == exerciseName && 
-                   session?.date == sessionDate && 
+            return exercise.exerciseName == exerciseName &&
+                   session?.date == sessionDate &&
                    set.id != setEntry.id
         }
-        
+
         let currentSessionHasPR = setsInCurrentSession.contains { $0.isPR }
-        
+
         if currentSessionHasPR {
-            setEntry.isPR = false
+            let prSetInSession = setsInCurrentSession.first { $0.isPR }
+            let prSet1RM = prSetInSession?.estimated1RM ?? 0.0
+
+            if current1RM > prSet1RM {
+                prSetInSession?.isPR = false
+                setEntry.isPR = true
+            } else {
+                setEntry.isPR = false
+            }
         } else {
             setEntry.isPR = current1RM > historicalMax
         }
