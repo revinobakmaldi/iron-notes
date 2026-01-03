@@ -129,19 +129,19 @@ struct AnalyticsView: View {
                     )
                     .foregroundStyle(Color.blue)
                     .interpolationMethod(.catmullRom)
-                    
+
                     PointMark(
                         x: .value("Date", data.date),
                         y: .value("1RM", data.est1RM)
                     )
                     .foregroundStyle(Color.blue)
-                    .annotation(position: .top) {
-                        Text("\(Int(data.est1RM))\(AppSettings.shared.preferredUnit.rawValue)")
+                    .annotation(position: .top, spacing: 16) {
+                        Text("\(Int(data.est1RM)) \(AppSettings.shared.preferredUnit.rawValue)")
                             .font(.caption)
                             .foregroundColor(.gray)
                     }
                 }
-                .frame(height: 200)
+                .frame(height: 300)
                 .chartXAxis {
                     AxisMarks(position: .bottom) { value in
                         AxisValueLabel(format: .dateTime.month().day())
@@ -149,14 +149,18 @@ struct AnalyticsView: View {
                     }
                 }
                 .chartYAxis {
-                    AxisMarks(position: .leading) { value in
+                    AxisMarks(position: .leading, content: .automatic(minimumStride: 5)) { value in
                         AxisValueLabel()
                             .foregroundStyle(.gray)
                     }
                 }
+                .chartPlotStyle { plotArea in
+                    plotArea
+                }
                 .background(Color.gray.opacity(0.1))
                 .cornerRadius(16)
-                .padding()
+                .padding(.top, 40)
+                .padding(.bottom, 50)
             }
         }
     }
