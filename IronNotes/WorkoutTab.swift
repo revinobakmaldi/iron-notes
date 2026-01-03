@@ -124,29 +124,16 @@ struct NewWorkoutSheet: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Binding var isPresented: Bool
-    
-    @State private var selectedMuscleGroup: MuscleGroup = .FULL_BODY
-    
+
     var body: some View {
         NavigationView {
             Form {
-                Section {
-                    Picker("Muscle Group", selection: $selectedMuscleGroup) {
-                        ForEach(MuscleGroup.allCases, id: \.self) { group in
-                            Text(group.rawValue).tag(group)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                } header: {
-                    Text("New Workout")
-                }
-                
                 Section {
                     Button("Start Fresh") {
                         startWorkout(cloneLast: false)
                     }
                     .foregroundColor(.blue)
-                    
+
                     Button("Clone Last Workout") {
                         startWorkout(cloneLast: true)
                     }
@@ -168,13 +155,13 @@ struct NewWorkoutSheet: View {
     
     private func startWorkout(cloneLast: Bool) {
         let session: WorkoutSession
-        
+
         if cloneLast {
-            session = WorkoutSession.cloneLastSession(muscleGroup: selectedMuscleGroup, context: modelContext)
+            session = WorkoutSession.cloneLastSession(context: modelContext)
         } else {
             session = WorkoutSession()
         }
-        
+
         modelContext.insert(session)
         isPresented = false
         dismiss()

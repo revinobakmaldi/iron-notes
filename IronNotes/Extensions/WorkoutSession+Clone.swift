@@ -2,29 +2,19 @@ import Foundation
 import SwiftData
 
 extension WorkoutSession {
-    
-    static func cloneLastSession(
-        muscleGroup: MuscleGroup,
-        context: ModelContext
-    ) -> WorkoutSession {
+
+    static func cloneLastSession(context: ModelContext) -> WorkoutSession {
         let descriptor = FetchDescriptor<WorkoutSession>(
             sortBy: [SortDescriptor(\.date, order: .reverse)]
         )
-        
-        guard let allSessions = try? context.fetch(descriptor) else {
+
+        guard let allSessions = try? context.fetch(descriptor),
+              let sessionToClone = allSessions.first else {
             return WorkoutSession(date: Date())
         }
-        
-        let lastSession = allSessions.first { session in
-            session.exercises.contains { $0.muscleGroup == muscleGroup }
-        }
-        
-        guard let sessionToClone = lastSession else {
-            return WorkoutSession(date: Date())
-        }
-        
+
         let newSession = WorkoutSession(date: Date())
-        
+
         for exercise in sessionToClone.exercises {
             let clonedExercise = ExerciseLog(
                 name: exercise.exerciseName,
@@ -33,7 +23,7 @@ extension WorkoutSession {
             clonedExercise.session = newSession
             newSession.exercises.append(clonedExercise)
         }
-        
+
         return newSession
     }
     
