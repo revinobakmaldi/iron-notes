@@ -48,23 +48,23 @@ struct SmartParserInput: View {
     
     private var textModeInput: some View {
         VStack(spacing: 12) {
-            Text("Quick text mode: e.g., 100kg 10r 3s")
+            Text("Quick text mode: e.g., 100kg 10r")
                 .font(.caption)
                 .foregroundColor(.gray)
 
             HStack(spacing: 12) {
-                TextField("100kg 10r 3s", text: $inputText)
+                TextField("100kg 10r", text: $inputText)
                     .textFieldStyle(.plain)
-                    .font(.body)
-                    .foregroundColor(.primary)
+                    .font(.system(size: 18))
+                    .foregroundColor(.white)
                     .padding(.horizontal, 12)
-                    .padding(.vertical, 10)
-                    .background(Color.gray.opacity(0.1))
+                    .padding(.vertical, 12)
+                    .background(Color.gray.opacity(0.15))
                     .cornerRadius(8)
 
                 Button(action: {
                     if let parsed = WorkoutParser.parse(inputText) {
-                        onLog(parsed.weight, parsed.reps, parsed.setCount)
+                        onLog(parsed.weight, parsed.reps, 1)
                         inputText = ""
                         showTextMode = false
                         HapticManager.success()
@@ -76,7 +76,7 @@ struct SmartParserInput: View {
                         .font(.headline)
                         .foregroundColor(.white)
                         .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
+                        .padding(.vertical, 12)
                         .background(Color.blue)
                         .cornerRadius(8)
                 }

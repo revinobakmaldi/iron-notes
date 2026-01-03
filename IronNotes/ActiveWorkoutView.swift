@@ -75,13 +75,6 @@ struct ActiveWorkoutView: View {
                                         HapticManager.light()
                                         selectedExerciseID = exercise.id
                                     }
-                                    .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                                        Button(role: .destructive) {
-                                            deleteExercise(exercise)
-                                        } label: {
-                                            Label("Delete", systemImage: "trash")
-                                        }
-                                    }
                                 }
                             }
                             .padding(.horizontal)
@@ -107,6 +100,20 @@ struct ActiveWorkoutView: View {
         .navigationTitle("Active Workout")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                if selectedExerciseID != nil {
+                    Button(action: {
+                        if let exercise = getSelectedExercise() {
+                            deleteExercise(exercise)
+                        }
+                    }) {
+                        Image(systemName: "trash")
+                            .foregroundColor(.red)
+                    }
+                    .frame(minWidth: 44, minHeight: 44)
+                }
+            }
+
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: { showAddExercise = true }) {
                     Image(systemName: "plus")
