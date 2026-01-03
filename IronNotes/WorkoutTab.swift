@@ -5,6 +5,8 @@ struct WorkoutTab: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \WorkoutSession.date, order: .reverse) private var sessions: [WorkoutSession]
     @State private var showNewWorkout = false
+    @State private var sessionToDelete: WorkoutSession?
+    @State private var showDeleteAlert = false
 
     var body: some View {
         NavigationView {
@@ -51,7 +53,8 @@ struct WorkoutTab: View {
                             VStack(spacing: 16) {
                                 ForEach(sessions) { session in
                                     SessionCard(session: session) {
-                                        deleteSession(session)
+                                        sessionToDelete = session
+                                        showDeleteAlert = true
                                     }
                                 }
                             }
@@ -66,6 +69,18 @@ struct WorkoutTab: View {
             .navigationBarTitleDisplayMode(.large)
             .background(Color.black)
         }
+        .alert("Delete Workout", isPresented: $showDeleteAlert) {
+            Button("Cancel", role: .cancel) {
+                sessionToDelete = nil
+            }
+            Button("Delete", role: .destructive) {
+                if let session = sessionToDelete {
+                    deleteSession(session)
+                }
+            }
+        } message: {
+            Text("Delete this workout? This action cannot be undone.")
+        }
         .sheet(isPresented: $showNewWorkout) {
             NewWorkoutSheet(isPresented: $showNewWorkout)
         }
@@ -73,6 +88,7 @@ struct WorkoutTab: View {
 
     private func deleteSession(_ session: WorkoutSession) {
         modelContext.delete(session)
+        sessionToDelete = nil
         HapticManager.success()
     }
 }
@@ -129,12 +145,9 @@ struct SessionCard: View {
             .padding()
             .background(Color.gray.opacity(0.1))
             .cornerRadius(12)
-        }
-        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-            Button(role: .destructive) {
+            .onLongPressGesture {
+                HapticManager.medium()
                 onDelete()
-            } label: {
-                Label("Delete", systemImage: "trash")
             }
         }
     }
