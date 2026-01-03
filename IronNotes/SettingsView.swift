@@ -128,37 +128,53 @@ struct SettingsView: View {
                 .foregroundColor(.gray)
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding()
-        } else {
+        } else if exercises.count <= 4 {
             VStack(spacing: 12) {
                 ForEach(exercises) { exercise in
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(exercise.name)
-                                .font(.headline)
-                                .foregroundColor(.primary)
-                                .fontWeight(.semibold)
-                        }
-
-                        Spacer()
-
-                        Button(action: {
-                            settings.removeMasterExercise(exercise, from: muscleGroup)
-                            HapticManager.light()
-                        }) {
-                            Image(systemName: "trash.fill")
-                                .font(.system(size: 16))
-                                .foregroundColor(.red.opacity(0.8))
-                        }
-                        .buttonStyle(.plain)
-                        .frame(minWidth: 44, minHeight: 44)
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .background(Color.gray.opacity(0.15))
-                    .cornerRadius(10)
+                    exerciseRow(exercise: exercise, muscleGroup: muscleGroup)
                 }
             }
             .padding(.vertical, 8)
+        } else {
+            VStack(spacing: 0) {
+                ScrollView {
+                    VStack(spacing: 12) {
+                        ForEach(exercises) { exercise in
+                            exerciseRow(exercise: exercise, muscleGroup: muscleGroup)
+                        }
+                    }
+                    .padding(.vertical, 8)
+                }
+                .frame(maxHeight: 250)
+            }
         }
+    }
+
+    private func exerciseRow(exercise: MasterExercise, muscleGroup: MuscleGroup) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(exercise.name)
+                    .font(.subheadline)
+                    .foregroundColor(.primary)
+                    .fontWeight(.medium)
+            }
+
+            Spacer()
+
+            Button(action: {
+                settings.removeMasterExercise(exercise, from: muscleGroup)
+                HapticManager.light()
+            }) {
+                Image(systemName: "trash.fill")
+                    .font(.system(size: 16))
+                    .foregroundColor(.red.opacity(0.8))
+            }
+            .buttonStyle(.plain)
+            .frame(minWidth: 44, minHeight: 44)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(Color.gray.opacity(0.15))
+        .cornerRadius(10)
     }
 }
