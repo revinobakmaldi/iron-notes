@@ -75,7 +75,7 @@ struct ActiveWorkoutView: View {
                                         HapticManager.light()
                                         selectedExerciseID = exercise.id
                                     }
-                                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    .swipeActions(edge: .leading, allowsFullSwipe: true) {
                                         Button(role: .destructive) {
                                             deleteExercise(exercise)
                                         } label: {

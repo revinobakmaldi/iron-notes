@@ -4,12 +4,13 @@ struct SmartParserInput: View {
     let exercise: ExerciseLog?
     var onLog: (Double, Int, Int) -> Void
     var onToggleTimer: () -> Void = {}
-    
+
     @State private var weight: Double = 0
     @State private var reps: Int = 0
     @State private var setCount: Int = 1
     @State private var isSingleArm: Bool = false
     @State private var showTextMode: Bool = false
+    @State private var inputText = ""
     
     var lastSet: SetEntry? {
         exercise?.sets.sorted(by: { $0.timestamp > $1.timestamp }).first
@@ -50,28 +51,42 @@ struct SmartParserInput: View {
             Text("Quick text mode: e.g., 100kg 10r 3s")
                 .font(.caption)
                 .foregroundColor(.gray)
-            
+
             HStack(spacing: 12) {
-                Text("100kg")
-                    .foregroundColor(.gray.opacity(0.5))
-                    .strikethrough()
-                
-                Text("10r")
-                    .foregroundColor(.gray.opacity(0.5))
-                    .strikethrough()
-                
-                Text("3s")
-                    .foregroundColor(.gray.opacity(0.5))
-                    .strikethrough()
-                
-                Spacer()
-                
+                TextField("100kg 10r 3s", text: $inputText)
+                    .textFieldStyle(.plain)
+                    .font(.body)
+                    .foregroundColor(.primary)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(8)
+
+                Button(action: {
+                    if let parsed = WorkoutParser.parse(inputText) {
+                        onLog(parsed.weight, parsed.reps, parsed.setCount)
+                        inputText = ""
+                        showTextMode = false
+                        HapticManager.success()
+                    } else {
+                        HapticManager.error()
+                    }
+                }) {
+                    Text("Log")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(Color.blue)
+                        .cornerRadius(8)
+                }
+
                 Button(action: {
                     showTextMode = false
                 }) {
-                    Text("Use Quick Mode")
-                        .font(.caption)
-                        .foregroundColor(.blue)
+                    Text("Cancel")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
                 }
             }
             .padding(.horizontal, 16)
