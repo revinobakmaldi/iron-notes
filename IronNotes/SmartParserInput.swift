@@ -134,7 +134,7 @@ struct SmartParserInput: View {
             Text("Weight")
                 .font(.caption)
                 .foregroundColor(.gray)
-            
+
             HStack(spacing: 16) {
                 Button(action: {
                     HapticManager.light()
@@ -145,12 +145,14 @@ struct SmartParserInput: View {
                         .foregroundColor(.blue)
                 }
                 .frame(minWidth: 44, minHeight: 44)
-                
-                Text(String(format: "%.1f", weight))
+
+                TextField("0.0", value: $weight, format: .number.precision(.fractionLength(1)))
                     .font(.system(size: 36, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
+                    .keyboardType(.decimalPad)
                     .frame(minWidth: 120)
-                
+
                 Button(action: {
                     HapticManager.light()
                     weight += 2.5
@@ -160,7 +162,7 @@ struct SmartParserInput: View {
                         .foregroundColor(.blue)
                 }
                 .frame(minWidth: 44, minHeight: 44)
-                
+
                 Text("kg")
                     .font(.headline)
                     .foregroundColor(.gray)
@@ -176,7 +178,7 @@ struct SmartParserInput: View {
             Text("Reps")
                 .font(.caption)
                 .foregroundColor(.gray)
-            
+
             HStack(spacing: 16) {
                 Button(action: {
                     HapticManager.light()
@@ -187,12 +189,14 @@ struct SmartParserInput: View {
                         .foregroundColor(.blue)
                 }
                 .frame(minWidth: 44, minHeight: 44)
-                
-                Text("\(reps)")
+
+                TextField("0", value: $reps, format: .number)
                     .font(.system(size: 36, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
+                    .keyboardType(.numberPad)
                     .frame(minWidth: 80)
-                
+
                 Button(action: {
                     HapticManager.light()
                     reps += 1

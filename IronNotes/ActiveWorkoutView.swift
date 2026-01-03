@@ -65,7 +65,7 @@ struct ActiveWorkoutView: View {
                                         context: modelContext
                                     )
                                     let isSelected = selectedExerciseID == exercise.id
-                                    
+
                                     Button(action: {
                                         HapticManager.light()
                                         selectedExerciseID = exercise.id
@@ -77,6 +77,13 @@ struct ActiveWorkoutView: View {
                                         )
                                     }
                                     .buttonStyle(PlainButtonStyle())
+                                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                        Button(role: .destructive) {
+                                            deleteExercise(exercise)
+                                        } label: {
+                                            Label("Delete", systemImage: "trash")
+                                        }
+                                    }
                                 }
                             }
                             .padding(.horizontal)
@@ -157,6 +164,11 @@ struct ActiveWorkoutView: View {
     }
     
     private func finishWorkout() {
+        HapticManager.success()
+    }
+
+    private func deleteExercise(_ exercise: ExerciseLog) {
+        modelContext.delete(exercise)
         HapticManager.success()
     }
 }
