@@ -75,37 +75,42 @@ struct SessionCard: View {
     
     var body: some View {
         NavigationLink(destination: ActiveWorkoutView(session: session)) {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    Text(session.date, format: .dateTime.month().day().year())
-                        .font(.headline)
-                        .foregroundColor(.white)
-                    
-                    Spacer()
-                    
-                    Text(session.date, format: .dateTime.hour().minute())
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                }
-                
-                Text("\(session.exercises.count) exercises")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-                
-                if !session.exercises.isEmpty {
-                    VStack(alignment: .leading, spacing: 4) {
-                        ForEach(session.exercises.prefix(3)) { exercise in
-                            HStack {
-                                Circle()
-                                    .fill(Color.blue)
-                                    .frame(width: 6, height: 6)
-                                Text(exercise.exerciseName)
-                                    .font(.caption)
-                                    .foregroundColor(.gray)
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text(session.date, format: .dateTime.month().day().year())
+                                .font(.headline)
+                                .foregroundColor(.white)
+
+                            Spacer()
+
+                            Text(session.date, format: .dateTime.hour().minute())
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+
+                            if session.isCompleted {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
                             }
                         }
-                        
-                        if session.exercises.count > 3 {
+
+                        Text("\(session.exercises.count) exercises")
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+
+                        if !session.exercises.isEmpty {
+                            VStack(alignment: .leading, spacing: 4) {
+                                ForEach(session.exercises.prefix(3)) { exercise in
+                                    HStack {
+                                        Circle()
+                                            .fill(Color.blue)
+                                            .frame(width: 6, height: 6)
+                                        Text(exercise.exerciseName)
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
+                                    }
+                                }
+
+                                if session.exercises.count > 3 {
                             Text("+ \(session.exercises.count - 3) more")
                                 .font(.caption)
                                 .foregroundColor(.gray.opacity(0.6))

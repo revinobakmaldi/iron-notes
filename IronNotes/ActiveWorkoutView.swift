@@ -12,6 +12,7 @@ struct ActiveWorkoutView: View {
     @State private var showFinishWorkout = false
     @State private var showSummary = false
     @State private var selectedExerciseID: UUID?
+    @State private var summaryDismissed = false
     
     var body: some View {
         ZStack {
@@ -28,13 +29,17 @@ struct ActiveWorkoutView: View {
                             
                             Spacer()
                             
-                            Button(action: { showFinishWorkout = true }) {
-                                Text("Finish")
+                            Button(action: {
+                                if !session.isCompleted {
+                                    showFinishWorkout = true
+                                }
+                            }) {
+                                Text(session.isCompleted ? "Completed" : "Finish")
                                     .font(.headline)
                                     .foregroundColor(.white)
                                     .padding(.horizontal, 20)
                                     .padding(.vertical, 10)
-                                    .background(Color.blue)
+                                    .background(session.isCompleted ? Color.gray : Color.blue)
                                     .cornerRadius(10)
                             }
                             .frame(minWidth: 44, minHeight: 44)
@@ -74,8 +79,10 @@ struct ActiveWorkoutView: View {
                                         isSelected: isSelected
                                     )
                                     .onTapGesture {
-                                        HapticManager.light()
-                                        selectedExerciseID = exercise.id
+                                        if !session.isCompleted {
+                                            HapticManager.light()
+                                            selectedExerciseID = exercise.id
+                                        }
                                     }
                                 }
                             }
@@ -85,10 +92,12 @@ struct ActiveWorkoutView: View {
                     }
                 }
                 .safeAreaInset(edge: .bottom) {
-                    SmartParserInput(
-                        exercise: getSelectedExercise(),
-                        onLog: handleLog
-                    )
+                    if !session.isCompleted {
+                        SmartParserInput(
+                            exercise: getSelectedExercise(),
+                            onLog: handleLog
+                        )
+                    }
                 }
             }
             
@@ -103,7 +112,7 @@ struct ActiveWorkoutView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                if selectedExerciseID != nil {
+                if selectedExerciseID != nil && !session.isCompleted {
                     Button(action: {
                         if let exercise = getSelectedExercise() {
                             deleteExercise(exercise)
@@ -117,11 +126,13 @@ struct ActiveWorkoutView: View {
             }
 
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: { showAddExercise = true }) {
-                    Image(systemName: "plus")
-                        .foregroundColor(.white)
+                if !session.isCompleted {
+                    Button(action: { showAddExercise = true }) {
+                        Image(systemName: "plus")
+                            .foregroundColor(.white)
+                    }
+                    .frame(minWidth: 44, minHeight: 44)
                 }
-                .frame(minWidth: 44, minHeight: 44)
             }
         }
         .sheet(isPresented: $showAddExercise) {
@@ -129,6 +140,12 @@ struct ActiveWorkoutView: View {
         }
         .fullScreenCover(isPresented: $showSummary) {
             WorkoutSummaryView(session: session) {
+                showSummary = false
+            }
+        }
+        .onChange(of: showSummary) { _, newValue in
+            if !newValue && session.isCompleted && !summaryDismissed {
+                summaryDismissed = true
                 dismiss()
             }
         }
@@ -154,24 +171,29 @@ struct ActiveWorkoutView: View {
             HapticManager.error()
             return
         }
-        
+
+        guard !session.isCompleted else {
+            HapticManager.error()
+            return
+        }
+
         let setEntry = SetEntry(
             weight: weight,
             reps: reps,
             setCount: setCount,
             isSingleArm: false
         )
-        
+
         setEntry.exercise = exercise
         exercise.sets.append(setEntry)
-        
+
         PRCalculator.checkAndMarkPR(
             for: setEntry,
             exerciseName: exercise.exerciseName,
             context: modelContext,
             sessionDate: session.date
         )
-        
+
         showRestTimer = true
     }
     
