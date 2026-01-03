@@ -393,7 +393,8 @@ struct AnalyticsView: View {
     private var averageDuration: Int {
         let completedSessions = sessions.filter { $0.isCompleted }
         guard !completedSessions.isEmpty else { return 0 }
-        return completedSessions.reduce(0, +) / completedSessions.count
+        let total = completedSessions.reduce(0) { $0 + $1.duration }
+        return total / completedSessions.count
     }
 
     private func formatVolume(_ volume: Double) -> String {
@@ -410,7 +411,7 @@ struct AnalyticsView: View {
     }
 
     private func exerciseMax1RM(_ exercise: String) -> Double {
-        let exerciseSets: [SetEntry] = []
+        var exerciseSets: [SetEntry] = []
         for session in sessions {
             for ex in session.exercises {
                 if ex.exerciseName == exercise {
