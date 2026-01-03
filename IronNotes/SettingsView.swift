@@ -172,9 +172,9 @@ struct SettingsView: View {
             .buttonStyle(.plain)
             .frame(minWidth: 44, minHeight: 44)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
         .background(Color.gray.opacity(0.15))
-        .cornerRadius(10)
+        .cornerRadius(8)
     }
 }
