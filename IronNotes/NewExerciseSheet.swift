@@ -3,11 +3,11 @@ import SwiftUI
 struct NewExerciseSheet: View {
     @Environment(AppSettings.self) private var settings
     @Environment(\.dismiss) private var dismiss
-    
+
     let muscleGroup: MuscleGroup
 
     @State private var exerciseName = ""
-    
+
     var body: some View {
         NavigationView {
             Form {
@@ -24,7 +24,7 @@ struct NewExerciseSheet: View {
                         dismiss()
                     }
                 }
-                
+
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
                         saveExercise()
@@ -34,7 +34,7 @@ struct NewExerciseSheet: View {
             }
         }
     }
-    
+
     private func saveExercise() {
         let newExercise = MasterExercise(
             name: exerciseName.trimmingCharacters(in: .whitespaces),

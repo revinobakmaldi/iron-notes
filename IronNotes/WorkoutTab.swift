@@ -5,12 +5,12 @@ struct WorkoutTab: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \WorkoutSession.date, order: .reverse) private var sessions: [WorkoutSession]
     @State private var showNewWorkout = false
-    
+
     var body: some View {
         NavigationView {
             ZStack {
                 Color.black.ignoresSafeArea()
-                
+
                 ScrollView {
                     VStack(spacing: 20) {
                         Button(action: { showNewWorkout = true }) {
@@ -29,7 +29,7 @@ struct WorkoutTab: View {
                             .cornerRadius(16)
                         }
                         .padding(.horizontal)
-                        
+
                         if sessions.isEmpty {
                             VStack(spacing: 20) {
                                 Image(systemName: "figure.strengthtraining.traditional")
@@ -50,7 +50,9 @@ struct WorkoutTab: View {
                         } else {
                             VStack(spacing: 16) {
                                 ForEach(sessions) { session in
-                                    SessionCard(session: session)
+                                    SessionCard(session: session) {
+                                        deleteSession(session)
+                                    }
                                 }
                             }
                             .padding(.horizontal)
@@ -68,11 +70,17 @@ struct WorkoutTab: View {
             NewWorkoutSheet(isPresented: $showNewWorkout)
         }
     }
+
+    private func deleteSession(_ session: WorkoutSession) {
+        modelContext.delete(session)
+        HapticManager.success()
+    }
 }
 
 struct SessionCard: View {
     let session: WorkoutSession
-    
+    let onDelete: () -> Void
+
     var body: some View {
         NavigationLink(destination: ActiveWorkoutView(session: session)) {
                     VStack(alignment: .leading, spacing: 12) {
@@ -122,6 +130,13 @@ struct SessionCard: View {
             .background(Color.gray.opacity(0.1))
             .cornerRadius(12)
         }
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            Button(role: .destructive) {
+                onDelete()
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
     }
 }
 
@@ -157,7 +172,7 @@ struct NewWorkoutSheet: View {
             .background(Color.black)
         }
     }
-    
+
     private func startWorkout(cloneLast: Bool) {
         let session: WorkoutSession
 

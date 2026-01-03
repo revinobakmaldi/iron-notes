@@ -13,11 +13,11 @@ struct ActiveWorkoutView: View {
     @State private var showSummary = false
     @State private var selectedExerciseID: UUID?
     @State private var summaryDismissed = false
-    
+
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-            
+
             VStack(spacing: 0) {
                 ScrollView {
                     VStack(spacing: 16) {
@@ -26,9 +26,9 @@ struct ActiveWorkoutView: View {
                                 .font(.title2)
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
-                            
+
                             Spacer()
-                            
+
                             Button(action: {
                                 if !session.isCompleted {
                                     showFinishWorkout = true
@@ -46,7 +46,7 @@ struct ActiveWorkoutView: View {
                         }
                         .padding(.horizontal)
                         .padding(.top, 10)
-                        
+
                         if session.exercises.isEmpty {
                             VStack(spacing: 20) {
                                 Image(systemName: "figure.strengthtraining.traditional")
@@ -100,7 +100,7 @@ struct ActiveWorkoutView: View {
                     }
                 }
             }
-            
+
             if showRestTimer {
                 RestTimerView(duration: settings.restTimerDuration) {
                     showRestTimer = false
@@ -158,14 +158,14 @@ struct ActiveWorkoutView: View {
             Text("Are you sure you want to finish this workout?")
         }
     }
-    
+
     private func getSelectedExercise() -> ExerciseLog? {
         guard let selectedID = selectedExerciseID else {
             return session.exercises.first
         }
         return session.exercises.first { $0.id == selectedID }
     }
-    
+
     private func handleLog(weight: Double, reps: Int, setCount: Int) {
         guard let exercise = getSelectedExercise() else {
             HapticManager.error()
@@ -196,7 +196,7 @@ struct ActiveWorkoutView: View {
 
         showRestTimer = true
     }
-    
+
     private func finishWorkout() {
         let endTime = Date()
         let durationInSeconds = Int(endTime.timeIntervalSince(session.date))
@@ -219,11 +219,11 @@ struct AddExerciseSheet: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AppSettings.self) private var settings
     @Environment(\.dismiss) private var dismiss
-    
+
     @State private var selectedMuscleGroup = MuscleGroup.CHEST
     @State private var searchText = ""
     @State private var showAddNewExercise = false
-    
+
     var filteredExercises: [MasterExercise] {
         let exercises = settings.getExercises(for: selectedMuscleGroup)
         if searchText.isEmpty {
@@ -231,7 +231,7 @@ struct AddExerciseSheet: View {
         }
         return exercises.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
     }
-    
+
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
@@ -243,7 +243,7 @@ struct AddExerciseSheet: View {
                 .pickerStyle(.segmented)
                 .padding()
                 .background(Color.gray.opacity(0.05))
-                
+
                 List {
                     if filteredExercises.isEmpty && !searchText.isEmpty {
                         Text("No master exercises for \(selectedMuscleGroup.rawValue)")
@@ -266,7 +266,7 @@ struct AddExerciseSheet: View {
                                         Text(exercise.name)
                                             .font(.headline)
                                             .foregroundColor(.primary)
-                                        
+
                                         if exercise.defaultWeight > 0 {
                                             HStack(spacing: 4) {
                                                 Text("\(Int(exercise.defaultWeight))kg")
@@ -278,9 +278,9 @@ struct AddExerciseSheet: View {
                                             }
                                         }
                                     }
-                                    
+
                                     Spacer()
-                                    
+
                                     Image(systemName: "plus.circle")
                                         .foregroundColor(.blue)
                                 }
@@ -300,7 +300,7 @@ struct AddExerciseSheet: View {
                             dismiss()
                         }
                     }
-                    
+
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button(action: {
                             showAddNewExercise = true
@@ -317,7 +317,7 @@ struct AddExerciseSheet: View {
             NewExerciseSheet(muscleGroup: selectedMuscleGroup)
         }
     }
-    
+
     private func addExercise(name: String, muscleGroup: MuscleGroup) {
         let exercise = ExerciseLog(
             name: name,
@@ -325,7 +325,7 @@ struct AddExerciseSheet: View {
         )
         exercise.session = session
         session.exercises.append(exercise)
-        
+
         HapticManager.success()
         dismiss()
     }

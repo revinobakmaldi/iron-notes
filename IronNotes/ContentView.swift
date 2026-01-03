@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selectedTab = 0
-    
+
     var body: some View {
         TabView(selection: $selectedTab) {
             WorkoutTab()
@@ -10,13 +10,13 @@ struct ContentView: View {
                     Label("Workouts", systemImage: "figure.strengthtraining.traditional")
                 }
                 .tag(0)
-            
+
             AnalyticsView()
                 .tabItem {
                     Label("Analytics", systemImage: "chart.line.uptrend.xyaxis")
                 }
                 .tag(1)
-            
+
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gearshape")

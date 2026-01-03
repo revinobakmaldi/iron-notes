@@ -5,7 +5,7 @@ struct ExerciseCard: View {
     var previousSets: [SetEntry] = []
     let isSelected: Bool
     @Environment(\.modelContext) private var modelContext
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
@@ -13,9 +13,9 @@ struct ExerciseCard: View {
                     .font(.title3)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
-                
+
                 Spacer()
-                
+
                 Text(exercise.muscleGroup.rawValue)
                     .font(.caption)
                     .padding(.horizontal, 12)
@@ -24,7 +24,7 @@ struct ExerciseCard: View {
                     .foregroundColor(.blue)
                     .cornerRadius(8)
             }
-            
+
             if exercise.sets.isEmpty {
                 Text("No sets logged yet")
                     .font(.subheadline)
@@ -36,13 +36,13 @@ struct ExerciseCard: View {
             } else {
                 setsTable
             }
-            
+
             if !previousSets.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Previous Session Summary")
                         .font(.caption)
                         .foregroundColor(.gray)
-                    
+
                     previousSessionSummary
                 }
             }
@@ -55,7 +55,7 @@ struct ExerciseCard: View {
                 .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 2)
         )
     }
-    
+
     private var setsTable: some View {
         VStack(spacing: 0) {
             HStack {
@@ -64,35 +64,35 @@ struct ExerciseCard: View {
                     .fontWeight(.bold)
                     .frame(width: 100, alignment: .center)
                     .foregroundColor(.gray)
-                
+
                 Text("Reps")
                     .font(.caption)
                     .fontWeight(.bold)
                     .frame(width: 80, alignment: .center)
                     .foregroundColor(.gray)
-                
+
                 Spacer()
-                
+
                 Text("")
                     .frame(width: 44, alignment: .trailing)
             }
             .padding(.vertical, 8)
             .background(Color.gray.opacity(0.2))
-            
+
             ForEach(exercise.sets.sorted(by: { $0.timestamp < $1.timestamp })) { set in
                 HStack {
                     Text("\(Int(set.weight))kg")
                         .font(.subheadline)
                         .frame(width: 100, alignment: .center)
                         .foregroundColor(.white)
-                    
+
                     Text("\(set.reps)")
                         .font(.subheadline)
                         .frame(width: 80, alignment: .center)
                         .foregroundColor(.white)
-                    
+
                     Spacer()
-                    
+
                     if set.isPR {
                         Image(systemName: "star.fill")
                             .font(.system(size: 16))
@@ -113,27 +113,27 @@ struct ExerciseCard: View {
                 .stroke(Color.gray.opacity(0.3), lineWidth: 1)
         )
     }
-    
+
     private var previousSessionSummary: some View {
         let totalSets = previousSets.count
         let totalVolume = previousSets.reduce(0.0) { sum, set in
             sum + (set.weight * Double(set.reps))
         }
         let hasPR = previousSets.contains { $0.isPR }
-        
+
         return HStack(spacing: 16) {
             SummaryItem(
                 icon: "figure.strengthtraining.traditional",
                 value: "\(totalSets)",
                 label: totalSets == 1 ? "set" : "sets"
             )
-            
+
             SummaryItem(
                 icon: "scalemass",
                 value: "\(Int(totalVolume))kg",
                 label: "volume"
             )
-            
+
             if hasPR {
                 HStack(spacing: 4) {
                     Image(systemName: "star.fill")
@@ -158,18 +158,18 @@ struct SummaryItem: View {
     let icon: String
     let value: String
     let label: String
-    
+
     var body: some View {
         VStack(spacing: 2) {
             Image(systemName: icon)
                 .font(.caption)
                 .foregroundColor(.gray.opacity(0.5))
-            
+
             Text(value)
                 .font(.headline)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
-            
+
             Text(label)
                 .font(.caption2)
                 .foregroundColor(.gray)

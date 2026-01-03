@@ -11,20 +11,20 @@ struct SmartParserInput: View {
     @State private var isSingleArm: Bool = false
     @State private var showTextMode: Bool = false
     @State private var inputText = ""
-    
+
     var lastSet: SetEntry? {
         exercise?.sets.sorted(by: { $0.timestamp > $1.timestamp }).first
     }
-    
+
     var body: some View {
         VStack(spacing: 0) {
             HStack {
                 Text(exercise?.exerciseName ?? "Select Exercise")
                     .font(.headline)
                     .foregroundColor(.blue)
-                
+
                 Spacer()
-                
+
                 Button(action: {
                     HapticManager.light()
                     showTextMode.toggle()
@@ -36,7 +36,7 @@ struct SmartParserInput: View {
             }
             .padding(.horizontal, 16)
             .padding(.top, 12)
-            
+
             if showTextMode {
                 textModeInput
             } else {
@@ -45,7 +45,7 @@ struct SmartParserInput: View {
         }
         .background(Color.black)
     }
-    
+
     private var textModeInput: some View {
         VStack(spacing: 12) {
             Text("Quick text mode: e.g., 100kg 10r")
@@ -93,7 +93,7 @@ struct SmartParserInput: View {
             .padding(.bottom, 12)
         }
     }
-    
+
     private var quickModeInput: some View {
         VStack(spacing: 12) {
             if let last = lastSet {
@@ -143,7 +143,7 @@ struct SmartParserInput: View {
                 .padding(.bottom, 12)
         }
     }
-    
+
     private var weightInput: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Weight")
@@ -188,7 +188,7 @@ struct SmartParserInput: View {
             .cornerRadius(10)
         }
     }
-    
+
     private var repsInput: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Reps")
@@ -229,7 +229,7 @@ struct SmartParserInput: View {
             .cornerRadius(10)
         }
     }
-    
+
     private var setNumberDisplay: some View {
         let nextSetNumber = (exercise?.sets.count ?? 0) + 1
         return HStack(spacing: 12) {
@@ -238,7 +238,7 @@ struct SmartParserInput: View {
                 .foregroundColor(.gray)
         }
     }
-    
+
     private var isSingleArmToggle: some View {
         Button(action: {
             HapticManager.light()
@@ -259,7 +259,7 @@ struct SmartParserInput: View {
         }
         .frame(minWidth: 44, minHeight: 44)
     }
-    
+
     private var logButton: some View {
         Button(action: {
             HapticManager.success()

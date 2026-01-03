@@ -1,10 +1,3 @@
-//
-//  IronNotesApp.swift
-//  IronNotes
-//
-//  Created by Revino B Akmaldi on 02/01/26.
-//
-
 import SwiftUI
 import SwiftData
 

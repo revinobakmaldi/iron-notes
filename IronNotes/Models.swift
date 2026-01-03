@@ -39,14 +39,14 @@ final class ExerciseLog {
     @Relationship(deleteRule: .cascade, inverse: \SetEntry.exercise)
     var sets: [SetEntry]
     var session: WorkoutSession?
-    
+
     init(name: String, muscleGroup: MuscleGroup) {
         self.id = UUID()
         self.exerciseName = name
         self.muscleGroup = muscleGroup
         self.sets = []
     }
-    
+
     var estimated1RM: Double {
         sets.map { $0.estimated1RM }.max() ?? 0.0
     }
@@ -62,11 +62,11 @@ final class SetEntry {
     var timestamp: Date
     var isPR: Bool
     var exercise: ExerciseLog?
-    
+
     var estimated1RM: Double {
         weight * (36 / (37 - Double(reps)))
     }
-    
+
     init(weight: Double, reps: Int, setCount: Int = 1, isSingleArm: Bool = false) {
         self.id = UUID()
         self.weight = weight
@@ -75,5 +75,19 @@ final class SetEntry {
         self.isSingleArm = isSingleArm
         self.timestamp = Date()
         self.isPR = false
+    }
+}
+
+struct MasterExercise: Identifiable, Codable {
+    let id: UUID
+    var name: String
+    var defaultWeight: Double
+    var defaultReps: Int
+
+    init(name: String, defaultWeight: Double = 0, defaultReps: Int = 0) {
+        self.id = UUID()
+        self.name = name
+        self.defaultWeight = defaultWeight
+        self.defaultReps = defaultReps
     }
 }

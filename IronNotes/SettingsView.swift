@@ -2,40 +2,40 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(AppSettings.self) private var settings
-    
+
     @State private var selectedMuscleGroup = MuscleGroup.CHEST
     @State private var showAddExercise = false
-    
+
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-            
+
             Form {
                 Section {
                     HStack {
                         Text("Rest Timer Duration")
                             .foregroundColor(.white)
-                        
+
                         Spacer()
-                        
+
                         Text("\(settings.restTimerDuration)s")
                             .foregroundColor(.gray)
                     }
-                    
+
                     VStack(alignment: .leading) {
                         HStack {
                             Text("30s")
                                 .font(.caption)
                                 .foregroundColor(.gray)
-                            
+
                             Slider(value: Binding(
                                 get: { Double(settings.restTimerDuration) },
-                                set: { 
+                                set: {
                                     settings.restTimerDuration = Int($0)
                                     settings.saveSettings()
                                 }
                             ), in: 30...300, step: 10)
-                            
+
                             Text("5m")
                                 .font(.caption)
                                 .foregroundColor(.gray)
@@ -46,11 +46,11 @@ struct SettingsView: View {
                     Text("Timer")
                         .foregroundColor(.white)
                 }
-                
+
                 Section {
                     Picker("Weight Unit", selection: Binding(
                         get: { settings.preferredUnit },
-                        set: { 
+                        set: {
                             settings.preferredUnit = $0
                             settings.saveSettings()
                         }
@@ -65,7 +65,7 @@ struct SettingsView: View {
                     Text("Units")
                         .foregroundColor(.white)
                 }
-                
+
                 Section {
                     HStack {
                         Picker("Muscle Group", selection: $selectedMuscleGroup) {
@@ -74,20 +74,20 @@ struct SettingsView: View {
                             }
                         }
                         .pickerStyle(.menu)
-                        
+
                         Button(action: { showAddExercise = true }) {
                             Image(systemName: "plus")
                                 .foregroundColor(.blue)
                         }
                         .frame(minWidth: 44, minHeight: 44)
                     }
-                    
+
                     masterExercisesList(for: selectedMuscleGroup)
                 } header: {
                     Text("Master Exercises")
                         .foregroundColor(.white)
                 }
-                
+
                 Section {
                     HStack {
                         Text("Version")
@@ -96,7 +96,7 @@ struct SettingsView: View {
                         Text("1.0.0")
                             .foregroundColor(.gray)
                     }
-                    
+
                     HStack {
                         Text("Built with")
                             .foregroundColor(.white)
@@ -118,7 +118,7 @@ struct SettingsView: View {
             NewExerciseSheet(muscleGroup: selectedMuscleGroup)
         }
     }
-    
+
     @ViewBuilder
     private func masterExercisesList(for muscleGroup: MuscleGroup) -> some View {
         let exercises = settings.getExercises(for: muscleGroup)
