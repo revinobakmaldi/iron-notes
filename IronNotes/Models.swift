@@ -16,13 +16,17 @@ final class WorkoutSession {
     var id: UUID
     var date: Date
     var notes: String
+    var duration: Int
+    var isCompleted: Bool
     @Relationship(deleteRule: .cascade, inverse: \ExerciseLog.session)
     var exercises: [ExerciseLog]
-    
+
     init(date: Date = Date(), notes: String = "") {
         self.id = UUID()
         self.date = date
         self.notes = notes
+        self.duration = 0
+        self.isCompleted = false
         self.exercises = []
     }
 }

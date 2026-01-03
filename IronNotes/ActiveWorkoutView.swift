@@ -5,10 +5,12 @@ struct ActiveWorkoutView: View {
     let session: WorkoutSession
     @Environment(\.modelContext) private var modelContext
     @Environment(AppSettings.self) private var settings
-    
+    @Environment(\.dismiss) private var dismiss
+
     @State private var showRestTimer = false
     @State private var showAddExercise = false
     @State private var showFinishWorkout = false
+    @State private var showSummary = false
     @State private var selectedExerciseID: UUID?
     
     var body: some View {
@@ -125,6 +127,11 @@ struct ActiveWorkoutView: View {
         .sheet(isPresented: $showAddExercise) {
             AddExerciseSheet(session: session)
         }
+        .fullScreenCover(isPresented: $showSummary) {
+            WorkoutSummaryView(session: session) {
+                dismiss()
+            }
+        }
         .alert("Finish Workout", isPresented: $showFinishWorkout) {
             Button("Cancel", role: .cancel) { }
             Button("Finish", role: .destructive) {
@@ -169,7 +176,14 @@ struct ActiveWorkoutView: View {
     }
     
     private func finishWorkout() {
+        let endTime = Date()
+        let durationInSeconds = Int(endTime.timeIntervalSince(session.date))
+
+        session.duration = durationInSeconds
+        session.isCompleted = true
+
         HapticManager.success()
+        showSummary = true
     }
 
     private func deleteExercise(_ exercise: ExerciseLog) {
