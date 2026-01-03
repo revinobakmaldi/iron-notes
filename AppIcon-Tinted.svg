@@ -1,0 +1,23 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+    <!-- Tinted Dumbbell Icon -->
+    <!-- Handle -->
+    <rect x="320" y="464" width="384" height="96" rx="16" fill="#000000"/>
+
+    <!-- Left weight plate - outer -->
+    <circle cx="224" cy="512" r="144" fill="#ffffff"/>
+
+    <!-- Left weight plate - inner -->
+    <circle cx="224" cy="512" r="96" fill="#000000"/>
+
+    <!-- Left weight plate - hole -->
+    <circle cx="224" cy="512" r="48" fill="#ffffff"/>
+
+    <!-- Right weight plate - outer -->
+    <circle cx="800" cy="512" r="144" fill="#ffffff"/>
+
+    <!-- Right weight plate - inner -->
+    <circle cx="800" cy="512" r="96" fill="#000000"/>
+
+    <!-- Right weight plate - hole -->
+    <circle cx="800" cy="512" r="48" fill="#ffffff"/>
+</svg>

@@ -83,7 +83,7 @@ struct SessionCard: View {
 
     var body: some View {
         NavigationLink(destination: ActiveWorkoutView(session: session)) {
-                    VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 12) {
                         HStack {
                             Text(session.date, format: .dateTime.month().day().year())
                                 .font(.headline)

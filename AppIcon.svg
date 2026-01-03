@@ -1,0 +1,26 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background -->
+    <rect width="1024" height="1024" fill="#000000" rx="224" ry="224"/>
+
+    <!-- Dumbbell handle -->
+    <rect x="320" y="464" width="384" height="96" rx="16" fill="#2196F3"/>
+
+    <!-- Left weight plate -->
+    <circle cx="224" cy="512" r="144" fill="#1976D2"/>
+    <circle cx="224" cy="512" r="96" fill="#2196F3"/>
+    <circle cx="224" cy="512" r="48" fill="#000000"/>
+
+    <!-- Right weight plate -->
+    <circle cx="800" cy="512" r="144" fill="#1976D2"/>
+    <circle cx="800" cy="512" r="96" fill="#2196F3"/>
+    <circle cx="800" cy="512" r="48" fill="#000000"/>
+
+    <!-- Gradient shine effect -->
+    <defs>
+        <linearGradient id="shine" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#42A5F5" stop-opacity="0.4"/>
+            <stop offset="100%" stop-color="#42A5F5" stop-opacity="0"/>
+        </linearGradient>
+    </defs>
+    <rect x="320" y="464" width="384" height="96" rx="16" fill="url(#shine)"/>
+</svg>
