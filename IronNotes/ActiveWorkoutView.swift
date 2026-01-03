@@ -66,17 +66,15 @@ struct ActiveWorkoutView: View {
                                     )
                                     let isSelected = selectedExerciseID == exercise.id
 
-                                    Button(action: {
+                                    ExerciseCard(
+                                        exercise: exercise,
+                                        previousSets: previousSets,
+                                        isSelected: isSelected
+                                    )
+                                    .onTapGesture {
                                         HapticManager.light()
                                         selectedExerciseID = exercise.id
-                                    }) {
-                                        ExerciseCard(
-                                            exercise: exercise,
-                                            previousSets: previousSets,
-                                            isSelected: isSelected
-                                        )
                                     }
-                                    .buttonStyle(PlainButtonStyle())
                                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                         Button(role: .destructive) {
                                             deleteExercise(exercise)
