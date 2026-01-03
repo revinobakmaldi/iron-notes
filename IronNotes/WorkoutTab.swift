@@ -68,6 +68,7 @@ struct WorkoutTab: View {
             .navigationTitle("Workouts")
             .navigationBarTitleDisplayMode(.large)
             .background(Color.black)
+            .preferredColorScheme(.dark)
         }
         .alert("Delete Workout", isPresented: $showDeleteAlert) {
             Button("Cancel", role: .cancel) {
