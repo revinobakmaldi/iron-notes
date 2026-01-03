@@ -3,6 +3,7 @@ import SwiftUI
 struct WorkoutSummaryView: View {
     let session: WorkoutSession
     let onComplete: () -> Void
+    @Environment(\.dismiss) private var dismiss
 
     var totalSets: Int {
         session.exercises.reduce(0) { $0 + $1.sets.count }
@@ -109,7 +110,7 @@ struct WorkoutSummaryView: View {
 
                         Button(action: {
                             HapticManager.success()
-                            onComplete()
+                            dismiss()
                         }) {
                             Text("Done")
                                 .font(.headline)
@@ -131,7 +132,7 @@ struct WorkoutSummaryView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Dismiss") {
                         HapticManager.light()
-                        onComplete()
+                        dismiss()
                     }
                     .foregroundColor(.gray)
                 }
