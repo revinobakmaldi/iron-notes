@@ -149,7 +149,7 @@ struct AnalyticsView: View {
                     }
                 }
                 .chartYAxis {
-                    AxisMarks(position: .leading, content: .automatic(minimumStride: 5)) { value in
+                    AxisMarks(position: .leading) { value in
                         AxisValueLabel()
                             .foregroundStyle(.gray)
                     }
