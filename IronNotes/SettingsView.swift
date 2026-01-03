@@ -122,49 +122,43 @@ struct SettingsView: View {
     @ViewBuilder
     private func masterExercisesList(for muscleGroup: MuscleGroup) -> some View {
         let exercises = settings.getExercises(for: muscleGroup)
-        
+
         if exercises.isEmpty {
             Text("No exercises for \(muscleGroup.rawValue)")
                 .foregroundColor(.gray)
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding()
         } else {
-            ForEach(exercises) { exercise in
-                Button(action: {
-                    settings.removeMasterExercise(exercise, from: muscleGroup)
-                    HapticManager.light()
-                }) {
+            VStack(spacing: 12) {
+                ForEach(exercises) { exercise in
                     HStack {
-                        VStack(alignment: .leading, spacing: 2) {
+                        VStack(alignment: .leading, spacing: 4) {
                             Text(exercise.name)
                                 .font(.headline)
-                                .foregroundColor(.white)
-                            
-                            HStack(spacing: 4) {
-                                if exercise.defaultWeight > 0 {
-                                    Text("\(Int(exercise.defaultWeight))kg")
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                }
-                                
-                                if exercise.defaultReps > 0 {
-                                    Text("× \(exercise.defaultReps)")
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                }
-                            }
+                                .foregroundColor(.primary)
+                                .fontWeight(.semibold)
                         }
-                        
+
                         Spacer()
-                        
-                        Image(systemName: "trash")
-                            .foregroundColor(.red)
+
+                        Button(action: {
+                            settings.removeMasterExercise(exercise, from: muscleGroup)
+                            HapticManager.light()
+                        }) {
+                            Image(systemName: "trash.fill")
+                                .font(.system(size: 16))
+                                .foregroundColor(.red.opacity(0.8))
+                        }
+                        .buttonStyle(.plain)
+                        .frame(minWidth: 44, minHeight: 44)
                     }
-                    .padding(.vertical, 8)
-                    .background(Color.gray.opacity(0.1))
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(Color.gray.opacity(0.15))
+                    .cornerRadius(10)
                 }
-                .buttonStyle(.plain)
             }
+            .padding(.vertical, 8)
         }
     }
 }
