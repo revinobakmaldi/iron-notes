@@ -5,6 +5,8 @@ struct SettingsView: View {
 
     @State private var selectedMuscleGroup = MuscleGroup.CHEST
     @State private var showAddExercise = false
+    @State private var exerciseToEdit: (exercise: MasterExercise, muscleGroup: MuscleGroup)?
+    @State private var showEditExercise = false
 
     var body: some View {
         ZStack {
@@ -117,6 +119,11 @@ struct SettingsView: View {
         .sheet(isPresented: $showAddExercise) {
             NewExerciseSheet(muscleGroup: selectedMuscleGroup)
         }
+        .sheet(isPresented: $showEditExercise) {
+            if let exerciseToEdit = exerciseToEdit {
+                EditExerciseSheet(exercise: exerciseToEdit.exercise, muscleGroup: exerciseToEdit.muscleGroup)
+            }
+        }
     }
 
     @ViewBuilder
@@ -160,6 +167,17 @@ struct SettingsView: View {
             }
 
             Spacer()
+
+            Button(action: {
+                exerciseToEdit = (exercise, muscleGroup)
+                showEditExercise = true
+            }) {
+                Image(systemName: "pencil.circle.fill")
+                    .font(.system(size: 16))
+                    .foregroundColor(.blue)
+            }
+            .buttonStyle(.plain)
+            .frame(minWidth: 44, minHeight: 44)
 
             Button(action: {
                 settings.removeMasterExercise(exercise, from: muscleGroup)

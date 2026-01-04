@@ -79,13 +79,13 @@ final class SetEntry {
 }
 
 struct MasterExercise: Identifiable, Codable {
-    let id: UUID
+    var id: UUID
     var name: String
     var defaultWeight: Double
     var defaultReps: Int
 
-    init(name: String, defaultWeight: Double = 0, defaultReps: Int = 0) {
-        self.id = UUID()
+    init(name: String, defaultWeight: Double = 0, defaultReps: Int = 0, id: UUID? = nil) {
+        self.id = id ?? UUID()
         self.name = name
         self.defaultWeight = defaultWeight
         self.defaultReps = defaultReps

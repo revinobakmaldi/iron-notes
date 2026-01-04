@@ -55,6 +55,12 @@ class AppSettings {
         saveSettings()
     }
 
+    func updateMasterExercise(_ exercise: MasterExercise, for muscleGroup: MuscleGroup) {
+        guard let index = masterExercises[muscleGroup.rawValue, default: []].firstIndex(where: { $0.id == exercise.id }) else { return }
+        masterExercises[muscleGroup.rawValue]?[index] = exercise
+        saveSettings()
+    }
+
     func getExercises(for muscleGroup: MuscleGroup) -> [MasterExercise] {
         masterExercises[muscleGroup.rawValue] ?? []
     }
