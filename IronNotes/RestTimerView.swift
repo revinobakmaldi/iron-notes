@@ -1,15 +1,11 @@
 import SwiftUI
 
 struct RestTimerView: View {
-    @State private var remainingTime: Int
-    @State private var totalTime: Int
-    @State private var timer: Timer?
-    @State private var isActive: Bool = false
+    @State private var timerManager = TimerManager.shared
+    @Environment(\.scenePhase) private var scenePhase
     var onDismiss: () -> Void
 
     init(duration: Int = 90, onDismiss: @escaping () -> Void) {
-        self._remainingTime = State(initialValue: duration)
-        self._totalTime = State(initialValue: duration)
         self.onDismiss = onDismiss
     }
 
@@ -24,12 +20,12 @@ struct RestTimerView: View {
                         .stroke(Color.gray.opacity(0.3), lineWidth: 8)
 
                     Circle()
-                        .trim(from: 0, to: CGFloat(remainingTime) / CGFloat(totalTime))
+                        .trim(from: 0, to: CGFloat(timerManager.remainingTime) / CGFloat(timerManager.totalTime))
                         .stroke(Color.blue, style: StrokeStyle(lineWidth: 8, lineCap: .round))
                         .rotationEffect(Angle(degrees: -90))
-                        .animation(.easeInOut(duration: 1), value: remainingTime)
+                        .animation(.easeInOut(duration: 1), value: timerManager.remainingTime)
 
-                    Text(timeString)
+                    Text(timerManager.timeString)
                         .font(.system(size: 48, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                 }
@@ -40,21 +36,21 @@ struct RestTimerView: View {
                     .foregroundColor(.white)
 
                 HStack(spacing: 20) {
-                    Button(action: decreaseTime) {
+                    Button(action: { timerManager.subtractTime(seconds: 10) }) {
                         Image(systemName: "minus.circle.fill")
                             .font(.system(size: 40))
                             .foregroundColor(.blue)
                     }
                     .frame(minWidth: 44, minHeight: 44)
 
-                    Button(action: toggleTimer) {
-                        Image(systemName: isActive ? "pause.circle.fill" : "play.circle.fill")
+                    Button(action: { timerManager.toggleTimer() }) {
+                        Image(systemName: timerManager.isActive ? "pause.circle.fill" : "play.circle.fill")
                             .font(.system(size: 60))
                             .foregroundColor(.blue)
                     }
                     .frame(minWidth: 44, minHeight: 44)
 
-                    Button(action: increaseTime) {
+                    Button(action: { timerManager.addTime(seconds: 10) }) {
                         Image(systemName: "plus.circle.fill")
                             .font(.system(size: 40))
                             .foregroundColor(.blue)
@@ -71,54 +67,28 @@ struct RestTimerView: View {
             }
         }
         .onAppear {
-            startTimer()
+            timerManager.startTimer(duration: 90)
         }
-    }
-
-    private var timeString: String {
-        let minutes = remainingTime / 60
-        let seconds = remainingTime % 60
-        return String(format: "%02d:%02d", minutes, seconds)
-    }
-
-    private func startTimer() {
-        isActive = true
-        timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-            if remainingTime > 0 {
-                remainingTime -= 1
-            } else {
-                timer?.invalidate()
-                isActive = false
+        .onChange(of: scenePhase) { _, newPhase in
+            switch newPhase {
+            case .background:
+                timerManager.appDidEnterBackground()
+            case .active:
+                timerManager.appWillEnterForeground()
+            default:
+                break
+            }
+        }
+        .onChange(of: timerManager.remainingTime) { oldValue, newValue in
+            if newValue == 0 && !timerManager.isActive {
                 HapticManager.success()
                 dismiss()
             }
         }
     }
 
-    private func toggleTimer() {
-        if isActive {
-            timer?.invalidate()
-            isActive = false
-        } else {
-            if remainingTime > 0 {
-                startTimer()
-            }
-        }
-    }
-
-    private func increaseTime() {
-        remainingTime = min(remainingTime + 10, 600)
-        totalTime = max(totalTime, remainingTime)
-    }
-
-    private func decreaseTime() {
-        remainingTime = max(remainingTime - 10, 10)
-        totalTime = max(totalTime, remainingTime)
-    }
-
     private func dismiss() {
-        timer?.invalidate()
+        timerManager.stopTimer()
         onDismiss()
     }
 }
