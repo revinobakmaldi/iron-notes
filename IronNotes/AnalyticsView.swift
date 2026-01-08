@@ -5,15 +5,47 @@ import Charts
 struct AnalyticsView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var sessions: [WorkoutSession]
+    @Query(filter: #Predicate<WorkoutSession> { !$0.isCompleted })
+    private var activeSessions: [WorkoutSession]
     @Environment(AppSettings.self) private var settings
 
     @State private var selectedExercise: String = ""
     @State private var showTooltip: Bool = false
     @State private var tooltipPosition: CGPoint = .zero
     @State private var selectedPRPoint: PRDataPoint?
+    @State private var showNewWorkout = false
 
     var sortedSessions: [WorkoutSession] {
         sessions.sorted { $0.date > $1.date }
+    }
+
+    var hasActiveSession: Bool {
+        !activeSessions.isEmpty
+    }
+
+    var workoutsThisWeek: Int {
+        let now = Date()
+        let weekAgo = Calendar.current.date(byAdding: .day, value: -7, to: now) ?? now
+        return sessions.filter { $0.isCompleted && $0.date >= weekAgo }.count
+    }
+
+    var daysSinceLastWorkout: Int {
+        guard let lastWorkout = sessions.filter({ $0.isCompleted }).sorted(by: { $0.date > $1.date }).first else {
+            return 999
+        }
+        let days = Calendar.current.dateComponents([.day], from: lastWorkout.date, to: Date()).day ?? 0
+        return days
+    }
+
+    var timeBasedGreeting: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        if hour < 12 {
+            return "Good morning"
+        } else if hour < 17 {
+            return "Good afternoon"
+        } else {
+            return "Good evening"
+        }
     }
 
     let muscleGroupColors: [MuscleGroup: Color] = [
@@ -32,12 +64,8 @@ struct AnalyticsView: View {
 
             ScrollView {
                 VStack(spacing: 24) {
-                    Text("Performance Analytics")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal)
+                    motivationalHeader
+                    startWorkoutButton
 
                     if sessions.isEmpty {
                         emptyState
@@ -54,8 +82,11 @@ struct AnalyticsView: View {
                 .padding(.top)
             }
         }
-        .navigationTitle("Analytics")
+        .navigationTitle("Home")
         .navigationBarTitleDisplayMode(.large)
+        .sheet(isPresented: $showNewWorkout) {
+            NewWorkoutSheet(isPresented: $showNewWorkout)
+        }
     }
 
     private var emptyState: some View {
@@ -75,6 +106,87 @@ struct AnalyticsView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 60)
+    }
+
+    private var motivationalHeader: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("\(timeBasedGreeting), let's crush it!")
+                .font(.title)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+
+            HStack(spacing: 16) {
+                Label("\(workoutsThisWeek) \(workoutsThisWeek == 1 ? "workout" : "workouts") this week", systemImage: "calendar")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+
+                Spacer()
+
+                if sessions.isEmpty {
+                    Text("Ready to start?")
+                        .font(.subheadline)
+                        .foregroundColor(.blue)
+                } else if daysSinceLastWorkout == 0 {
+                    Text("Last workout: Today!")
+                        .font(.subheadline)
+                        .foregroundColor(.green)
+                } else if daysSinceLastWorkout == 1 {
+                    Text("Last workout: Yesterday")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                } else {
+                    Text("Last workout: \(daysSinceLastWorkout) days ago")
+                        .font(.subheadline)
+                        .foregroundColor(daysSinceLastWorkout > 3 ? .orange : .gray)
+                }
+            }
+        }
+        .padding(.horizontal)
+    }
+
+    private var startWorkoutButton: some View {
+        Group {
+            if hasActiveSession, let activeSession = activeSessions.first {
+                NavigationLink(destination: ActiveWorkoutView(session: activeSession)) {
+                    HStack {
+                        Image(systemName: "play.circle.fill")
+                            .font(.title2)
+                        Text("Resume Workout")
+                            .font(.headline)
+                        Spacer()
+                        Text(activeSession.exercises.count > 0 ? "\(activeSession.exercises.count) exercises" : "New")
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.7))
+                    }
+                    .foregroundColor(.white)
+                    .padding()
+                    .background(Color.blue)
+                    .cornerRadius(16)
+                }
+                .buttonStyle(PlainButtonStyle())
+                .padding(.horizontal)
+            } else {
+                Button(action: {
+                    HapticManager.medium()
+                    showNewWorkout = true
+                }) {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title2)
+                        Text("Start Workout")
+                            .font(.headline)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.headline)
+                    }
+                    .foregroundColor(.white)
+                    .padding()
+                    .background(Color.blue)
+                    .cornerRadius(16)
+                }
+                .padding(.horizontal)
+            }
+        }
     }
 
     private var dashboardOverview: some View {
