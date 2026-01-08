@@ -21,6 +21,26 @@ xcodebuild test -project IronNotes.xcodeproj -scheme IronTests -destination 'pla
 xcodebuild test -project IronNotes.xcodeproj -scheme IronTests -destination 'platform=iOS Simulator,name=iPhone 15' -only-testing:IronTests/TestClass/testMethod
 ```
 
+## Application Architecture
+
+### Tab Structure
+The app uses a TabView with 3 tabs (ordered as follows):
+1. **Home** (formerly Analytics) - Dashboard with motivational header, quick stats, and workout start button
+2. **Workouts** - List of workout sessions with active workout support
+3. **Settings** - App configuration and preferences
+
+### Key Views and Components
+- `ContentView.swift` - Main tab view structure
+- `AnalyticsView.swift` - Home page with dashboard, charts, and workout start
+- `WorkoutTab.swift` - Workout history and new workout creation
+- `ActiveWorkoutView.swift` - Active workout session interface
+- `SettingsView.swift` - App settings management
+
+### Data Flow
+- Workout sessions are created via `NewWorkoutSheet` (start fresh or clone last)
+- Active sessions are detected using `@Query(filter: #Predicate { !$0.isCompleted })`
+- Resume workout navigates to `ActiveWorkoutView` via `NavigationLink`
+
 ## Code Style Guidelines
 
 ### Project Overview
@@ -28,6 +48,7 @@ xcodebuild test -project IronNotes.xcodeproj -scheme IronTests -destination 'pla
 - Swift 5.0, iOS 26.2+ deployment target
 - Dark theme UI with haptic feedback
 - Gym workout logging with PR tracking and analytics
+- Motivational home page design with quick stats
 
 ### Import Style
 - Place imports at top of file in this order: Apple frameworks, then third-party
@@ -79,6 +100,18 @@ xcodebuild test -project IronNotes.xcodeproj -scheme IronTests -destination 'pla
 - Use `@State private var` for internal state
 - Always call `HapticManager.feedback()` on user interactions
 
+**Query Patterns**
+- Use `@Query` without parameters for all records
+- Use `@Query(sort: \Property, order: .reverse)` for sorted results
+- Use `@Query(filter: #Predicate<Type> { condition })` for filtered queries
+- Example: `@Query(filter: #Predicate<WorkoutSession> { !$0.isCompleted })` for active sessions
+
+**Conditional Rendering**
+- Use `Group` to conditionally render different view structures
+- Use `if let` for optional unwrapping in view body
+- Use `.sheet(isPresented: $binding)` for modal presentation
+- Use `.alert()` for confirmations and warnings
+
 **View Modifiers**
 - Chain modifiers using dot notation
 - Use `.padding()`, `.background()`, `.cornerRadius()` consistently
@@ -99,6 +132,25 @@ xcodebuild test -project IronNotes.xcodeproj -scheme IronTests -destination 'pla
 - Use `modelContext.fetch(descriptor)` with `FetchDescriptor` for queries
 - Use `@Query` macro for reactive queries in Views
 - Set relationships by assigning parent/child properties
+
+### Common Patterns
+
+**Time-based Logic**
+- Use `Calendar.current.component(.hour, from: Date())` for time-based greetings
+- Use `Calendar.current.dateComponents([.day], from: date1, to: date2)` for day differences
+- Use `Calendar.current.date(byAdding: .day, value: X, to: date)` for date arithmetic
+
+**Home Page Patterns**
+- Motivational header with time-based greeting ("Good morning/afternoon/evening")
+- Quick stats: workouts this week, days since last workout
+- Prominent "Start Workout" button (changes to "Resume" when active session exists)
+- Conditional navigation: `NavigationLink` for active sessions, `.sheet()` for new workouts
+
+**Button Styling**
+- Primary action: Blue background, white text, rounded corners (16pt)
+- Icon + text + chevron for navigation buttons
+- Use `.buttonStyle(PlainButtonStyle())` on NavigationLink to prevent default styling
+- Always include haptic feedback: `HapticManager.medium()` or `HapticManager.light()`
 
 ### Error Handling
 
