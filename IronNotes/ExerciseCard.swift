@@ -116,9 +116,7 @@ struct ExerciseCard: View {
 
     private var previousSessionSummary: some View {
         let totalSets = previousSets.count
-        let totalVolume = previousSets.reduce(0.0) { sum, set in
-            sum + (set.weight * Double(set.reps))
-        }
+        let maxWeight = previousSets.map(\.weight).max() ?? 0
         let hasPR = previousSets.contains { $0.isPR }
 
         return HStack(spacing: 16) {
@@ -130,8 +128,8 @@ struct ExerciseCard: View {
 
             SummaryItem(
                 icon: "scalemass",
-                value: "\(Int(totalVolume))kg",
-                label: "volume"
+                value: "\(Int(maxWeight))kg",
+                label: "max"
             )
 
             if hasPR {
