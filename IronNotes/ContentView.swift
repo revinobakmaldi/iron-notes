@@ -5,15 +5,15 @@ struct ContentView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            WorkoutTab()
-                .tabItem {
-                    Label("Workouts", systemImage: "figure.strengthtraining.traditional")
-                }
-                .tag(0)
-
             AnalyticsView()
                 .tabItem {
                     Label("Analytics", systemImage: "chart.line.uptrend.xyaxis")
+                }
+                .tag(0)
+
+            WorkoutTab()
+                .tabItem {
+                    Label("Workouts", systemImage: "figure.strengthtraining.traditional")
                 }
                 .tag(1)
 
