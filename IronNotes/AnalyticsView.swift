@@ -95,9 +95,9 @@ struct AnalyticsView: View {
                 )
 
                 StatCard(
-                    icon: "scalemass",
-                    value: formatVolume(totalVolume),
-                    label: "Total Volume",
+                    icon: "figure.strengthtraining.traditional",
+                    value: "\(totalSets)",
+                    label: "Total Sets",
                     color: .purple
                 )
 
@@ -372,12 +372,10 @@ struct AnalyticsView: View {
         sessions.filter { $0.isCompleted }.count
     }
 
-    private var totalVolume: Double {
-        sessions.reduce(0.0) { sum, session in
-            sum + session.exercises.reduce(0.0) { exerciseSum, exercise in
-                exerciseSum + exercise.sets.reduce(0.0) { setSum, set in
-                    setSum + (set.weight * Double(set.reps))
-                }
+    private var totalSets: Int {
+        sessions.reduce(0) { sum, session in
+            sum + session.exercises.reduce(0) { exerciseSum, exercise in
+                exerciseSum + exercise.sets.count
             }
         }
     }
