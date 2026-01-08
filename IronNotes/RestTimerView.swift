@@ -3,9 +3,11 @@ import SwiftUI
 struct RestTimerView: View {
     @State private var timerManager = TimerManager.shared
     @Environment(\.scenePhase) private var scenePhase
+    @State private var duration: Int
     var onDismiss: () -> Void
 
     init(duration: Int = 90, onDismiss: @escaping () -> Void) {
+        self.duration = duration
         self.onDismiss = onDismiss
     }
 
@@ -67,7 +69,7 @@ struct RestTimerView: View {
             }
         }
         .onAppear {
-            timerManager.startTimer(duration: 90)
+            timerManager.startTimer(duration: duration)
         }
         .onChange(of: scenePhase) { _, newPhase in
             switch newPhase {
