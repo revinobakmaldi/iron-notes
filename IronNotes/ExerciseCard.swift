@@ -25,6 +25,12 @@ struct ExerciseCard: View {
                     .cornerRadius(8)
             }
 
+            if PRCalculator.isAssistedExercise(exercise.exerciseName) {
+                Text("↓ Lower is better")
+                    .font(.caption2)
+                    .foregroundColor(.green)
+            }
+
             if exercise.sets.isEmpty {
                 Text("No sets logged yet")
                     .font(.subheadline)
@@ -116,7 +122,10 @@ struct ExerciseCard: View {
 
     private var previousSessionSummary: some View {
         let totalSets = previousSets.count
-        let maxWeight = previousSets.map(\.weight).max() ?? 0
+        let assisted = PRCalculator.isAssistedExercise(exercise.exerciseName)
+        let bestWeight = assisted
+            ? (previousSets.map(\.weight).min() ?? 0)
+            : (previousSets.map(\.weight).max() ?? 0)
         let hasPR = previousSets.contains { $0.isPR }
 
         return HStack(spacing: 16) {
@@ -128,8 +137,8 @@ struct ExerciseCard: View {
 
             SummaryItem(
                 icon: "scalemass",
-                value: "\(Int(maxWeight))kg",
-                label: "max"
+                value: "\(Int(bestWeight))kg",
+                label: assisted ? "min" : "max"
             )
 
             if hasPR {

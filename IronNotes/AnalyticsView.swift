@@ -537,7 +537,9 @@ struct AnalyticsView: View {
     }
 
     private var uniqueExercises: [String] {
-        Set(sessions.flatMap { $0.exercises.map { $0.exerciseName } }).sorted()
+        Set(sessions.flatMap { $0.exercises.map { $0.exerciseName } })
+            .filter { !PRCalculator.isAssistedExercise($0) }
+            .sorted()
     }
 
     private var volumeData: [VolumeDataPoint] {

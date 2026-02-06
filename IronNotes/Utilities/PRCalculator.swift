@@ -3,6 +3,10 @@ import SwiftData
 
 class PRCalculator {
 
+    static func isAssistedExercise(_ name: String) -> Bool {
+        name.localizedCaseInsensitiveContains("assisted")
+    }
+
     static func checkAndMarkPR(
         for setEntry: SetEntry,
         exerciseName: String,
@@ -24,7 +28,13 @@ class PRCalculator {
             return exercise.exerciseName == exerciseName && set.id != setEntry.id
         }
 
-        let historicalMax = exerciseSets.map { $0.estimated1RM }.max() ?? 0.0
+        let assisted = isAssistedExercise(exerciseName)
+        let historicalBest: Double
+        if assisted {
+            historicalBest = exerciseSets.map { $0.estimated1RM }.min() ?? Double.infinity
+        } else {
+            historicalBest = exerciseSets.map { $0.estimated1RM }.max() ?? 0.0
+        }
 
         let setsInCurrentSession = allSets.filter { set in
             guard let exercise = set.exercise else { return false }
@@ -40,14 +50,16 @@ class PRCalculator {
             let prSetInSession = setsInCurrentSession.first { $0.isPR }
             let prSet1RM = prSetInSession?.estimated1RM ?? 0.0
 
-            if current1RM > prSet1RM {
+            let isBetter = assisted ? current1RM < prSet1RM : current1RM > prSet1RM
+            if isBetter {
                 prSetInSession?.isPR = false
                 setEntry.isPR = true
             } else {
                 setEntry.isPR = false
             }
         } else {
-            setEntry.isPR = current1RM > historicalMax
+            let isPR = assisted ? current1RM < historicalBest : current1RM > historicalBest
+            setEntry.isPR = isPR
         }
     }
 
