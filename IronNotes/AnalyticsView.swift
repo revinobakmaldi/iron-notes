@@ -9,24 +9,14 @@ struct AnalyticsView: View {
     private var activeSessions: [WorkoutSession]
     @Environment(AppSettings.self) private var settings
 
-    @State private var selectedExercise: String = ""
-    @State private var showTooltip: Bool = false
-    @State private var tooltipPosition: CGPoint = .zero
-    @State private var selectedPRPoint: PRDataPoint?
     @State private var showNewWorkout = false
-
-    var sortedSessions: [WorkoutSession] {
-        sessions.sorted { $0.date > $1.date }
-    }
 
     var hasActiveSession: Bool {
         !activeSessions.isEmpty
     }
 
     var workoutsThisWeek: Int {
-        let now = Date()
-        let weekAgo = Calendar.current.date(byAdding: .day, value: -7, to: now) ?? now
-        return sessions.filter { $0.isCompleted && $0.date >= weekAgo }.count
+        last7DaysSessions.count
     }
 
     var daysSinceLastWorkout: Int {
@@ -58,6 +48,22 @@ struct AnalyticsView: View {
         .FULL_BODY: Color(red: 0.5, green: 0.5, blue: 0.95)
     ]
 
+    // MARK: - Data Filtering
+
+    private var sevenDaysAgo: Date {
+        Calendar.current.startOfDay(for: Calendar.current.date(byAdding: .day, value: -6, to: Date()) ?? Date())
+    }
+
+    private var last7DaysSessions: [WorkoutSession] {
+        sessions.filter { $0.isCompleted && $0.date >= sevenDaysAgo }
+    }
+
+    private var priorSessions: [WorkoutSession] {
+        sessions.filter { $0.isCompleted && $0.date < sevenDaysAgo }
+    }
+
+    // MARK: - Body
+
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
@@ -71,9 +77,10 @@ struct AnalyticsView: View {
                         emptyState
                     } else {
                         VStack(spacing: 24) {
-                            dashboardOverview
-                            volumeChartSection
-                            prChartSection
+                            weeklyCalendarStrip
+                            weeklySetsByMuscleGroup
+                            strengthProgress
+                            trainingGaps
                         }
                         .padding(.horizontal)
                         .padding(.bottom, 20)
@@ -89,24 +96,7 @@ struct AnalyticsView: View {
         }
     }
 
-    private var emptyState: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "chart.line.uptrend.xyaxis")
-                .font(.system(size: 80))
-                .foregroundColor(.gray)
-            Text("No Data Yet")
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(.white)
-            Text("Complete workouts to see your progress")
-                .font(.subheadline)
-                .foregroundColor(.gray)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.top, 60)
-    }
+    // MARK: - Motivational Header
 
     private var motivationalHeader: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -143,6 +133,8 @@ struct AnalyticsView: View {
         }
         .padding(.horizontal)
     }
+
+    // MARK: - Start Workout Button
 
     private var startWorkoutButton: some View {
         Group {
@@ -189,96 +181,93 @@ struct AnalyticsView: View {
         }
     }
 
-    private var dashboardOverview: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Dashboard")
-                .font(.headline)
+    // MARK: - Empty State
+
+    private var emptyState: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "chart.line.uptrend.xyaxis")
+                .font(.system(size: 80))
+                .foregroundColor(.gray)
+            Text("No Data Yet")
+                .font(.title2)
+                .fontWeight(.bold)
                 .foregroundColor(.white)
-
-            LazyVGrid(columns: [
-                GridItem(.flexible()),
-                GridItem(.flexible())
-            ], spacing: 16) {
-                StatCard(
-                    icon: "calendar",
-                    value: "\(totalWorkouts)",
-                    label: "Total Workouts",
-                    color: .blue
-                )
-
-                StatCard(
-                    icon: "figure.strengthtraining.traditional",
-                    value: "\(totalSets)",
-                    label: "Total Sets",
-                    color: .purple
-                )
-
-                StatCard(
-                    icon: "star.fill",
-                    value: "\(totalPRs)",
-                    label: "PRs Achieved",
-                    color: .yellow
-                )
-
-                StatCard(
-                    icon: "clock",
-                    value: formatDuration(averageDuration),
-                    label: "Avg Duration",
-                    color: .green
-                )
-            }
+            Text("Complete workouts to see your progress")
+                .font(.subheadline)
+                .foregroundColor(.gray)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
         }
-        .padding()
-        .background(
-            LinearGradient(
-                colors: [Color.gray.opacity(0.08), Color.gray.opacity(0.02)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        )
-        .cornerRadius(16)
+        .frame(maxWidth: .infinity)
+        .padding(.top, 60)
     }
 
-    private var volumeChartSection: some View {
+    // MARK: - Section 1: Weekly Gym Activity
+
+    private var last7CalendarDays: [Date] {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        return (0..<7).reversed().map { offset in
+            calendar.date(byAdding: .day, value: -offset, to: today) ?? today
+        }
+    }
+
+    private func hasWorkoutOn(date: Date) -> Bool {
+        let calendar = Calendar.current
+        return last7DaysSessions.contains { session in
+            calendar.isDate(session.date, inSameDayAs: date)
+        }
+    }
+
+    private var gymDaysCount: Int {
+        last7CalendarDays.filter { hasWorkoutOn(date: $0) }.count
+    }
+
+    private var weeklyCalendarStrip: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Volume by Muscle Group")
+            Text("Weekly Activity")
                 .font(.headline)
                 .foregroundColor(.white)
 
-            if volumeData.isEmpty {
-                Text("No volume data")
-                    .font(.caption)
-                    .foregroundColor(.gray)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.vertical, 60)
-                    .background(Color.gray.opacity(0.08))
-                    .cornerRadius(16)
-            } else {
-                Chart(volumeData) { data in
-                    BarMark(
-                        x: .value("Volume", data.volume),
-                        y: .value("Muscle Group", data.muscleGroup.rawValue)
-                    )
-                    .foregroundStyle(muscleGroupColors[data.muscleGroup] ?? .blue)
-                    .cornerRadius(8)
-                }
-                .frame(height: 280)
-                .chartXAxis {
-                    AxisMarks(position: .bottom) { _ in
-                        AxisValueLabel()
-                            .foregroundStyle(.gray)
+            HStack(spacing: 0) {
+                ForEach(last7CalendarDays, id: \.self) { day in
+                    let hasWorkout = hasWorkoutOn(date: day)
+                    let isToday = Calendar.current.isDateInToday(day)
+                    VStack(spacing: 8) {
+                        Text(day.formatted(.dateTime.weekday(.abbreviated)).prefix(3))
+                            .font(.caption2)
+                            .foregroundColor(.gray)
+
+                        ZStack {
+                            Circle()
+                                .fill(hasWorkout ? Color.blue : Color.gray.opacity(0.15))
+                                .frame(width: 36, height: 36)
+
+                            if hasWorkout {
+                                Image(systemName: "checkmark")
+                                    .font(.caption)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                            } else {
+                                Text(day.formatted(.dateTime.day()))
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        .overlay(
+                            Circle()
+                                .strokeBorder(isToday ? Color.white.opacity(0.5) : Color.clear, lineWidth: 2)
+                                .frame(width: 36, height: 36)
+                        )
                     }
-                }
-                .chartYAxis {
-                    AxisMarks(position: .leading) { _ in
-                        AxisValueLabel()
-                            .foregroundStyle(.gray)
-                    }
-                }
-                .chartPlotStyle { plotArea in
-                    plotArea
+                    .frame(maxWidth: .infinity)
                 }
             }
+
+            Text("\(gymDaysCount) of 7 days")
+                .font(.subheadline)
+                .foregroundColor(.gray)
+                .frame(maxWidth: .infinity, alignment: .center)
         }
         .padding(20)
         .background(
@@ -291,172 +280,62 @@ struct AnalyticsView: View {
         .cornerRadius(16)
     }
 
-    private var prChartSection: some View {
+    // MARK: - Section 2: Weekly Sets by Muscle Group
+
+    private var weeklySetsByMuscle: [(muscleGroup: MuscleGroup, sets: Int)] {
+        var setsPerMuscle: [MuscleGroup: Int] = [:]
+
+        for session in last7DaysSessions {
+            for exercise in session.exercises {
+                setsPerMuscle[exercise.muscleGroup, default: 0] += exercise.sets.count
+            }
+        }
+
+        return setsPerMuscle
+            .map { (muscleGroup: $0.key, sets: $0.value) }
+            .sorted { $0.sets > $1.sets }
+    }
+
+    private var weeklySetsByMuscleGroup: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("1RM Progression")
+            Text("Weekly Sets by Muscle Group")
                 .font(.headline)
                 .foregroundColor(.white)
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    Button {
-                        selectedExercise = ""
-                        selectedPRPoint = nil
-                    } label: {
-                        Text("All")
-                            .font(.subheadline)
-                            .foregroundColor(selectedExercise.isEmpty ? .white : .gray)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 10)
-                            .background(selectedExercise.isEmpty ? Color.blue : Color.gray.opacity(0.2))
-                            .cornerRadius(20)
-                    }
-
-                    ForEach(uniqueExercises, id: \.self) { exercise in
-                        let max1RM = exerciseMax1RM(exercise)
-                        Button {
-                            selectedExercise = exercise
-                            selectedPRPoint = nil
-                        } label: {
-                            VStack(spacing: 2) {
-                                Text(exercise)
-                                    .font(.subheadline)
-                                    .foregroundColor(selectedExercise == exercise ? .white : .gray)
-                                if max1RM > 0 {
-                                    Text("\(Int(max1RM)) \(AppSettings.shared.preferredUnit.rawValue)")
-                                        .font(.caption2)
-                                        .foregroundColor(selectedExercise == exercise ? .white.opacity(0.8) : .gray.opacity(0.6))
-                                }
-                            }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 10)
-                            .background(selectedExercise == exercise ? Color.blue : Color.gray.opacity(0.2))
-                            .cornerRadius(20)
-                        }
-                    }
-                }
-                .padding(.horizontal)
-            }
-
-            if selectedExercise.isEmpty {
-                Text("Select an exercise to view progress")
+            if weeklySetsByMuscle.isEmpty {
+                Text("No sets recorded this week")
                     .font(.subheadline)
                     .foregroundColor(.gray)
                     .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.vertical, 60)
-                    .background(Color.gray.opacity(0.08))
-                    .cornerRadius(16)
+                    .padding(.vertical, 40)
             } else {
-                ZStack {
-                    Chart(prData) { data in
-                        LineMark(
-                            x: .value("Date", data.date),
-                            y: .value("1RM", data.est1RM)
-                        )
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [.blue, .purple],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .lineStyle(StrokeStyle(lineWidth: 4, lineCap: .round))
-                        .interpolationMethod(.catmullRom)
+                let maxSets = weeklySetsByMuscle.map(\.sets).max() ?? 1
 
-                        PointMark(
-                            x: .value("Date", data.date),
-                            y: .value("1RM", data.est1RM)
-                        )
-                        .foregroundStyle(.white)
-                        .symbolSize(6)
-                    }
-                    .frame(height: 320)
-                    .chartXAxis {
-                        AxisMarks(position: .bottom) { value in
-                            AxisValueLabel(format: .dateTime.month().day())
-                                .foregroundStyle(.gray)
-                        }
-                    }
-                    .chartYAxis {
-                        AxisMarks(position: .leading) { _ in
-                            AxisGridLine(stroke: StrokeStyle(lineWidth: 1, dash: [5, 5]))
-                                .foregroundStyle(Color.gray.opacity(0.2))
-                            AxisValueLabel()
-                                .foregroundStyle(.gray)
-                        }
-                    }
-                    .chartBackground { _ in
-                        GeometryReader { geo in
-                            Rectangle()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [Color.blue.opacity(0.15), Color.clear],
-                                        startPoint: .top,
-                                        endPoint: .bottom
-                                    )
-                                )
-                        }
-                    }
-                    .chartPlotStyle { plotArea in
-                        plotArea
-                    }
-                    .shadow(color: Color.blue.opacity(0.3), radius: 8, x: 0, y: 4)
-
-                    if let pr = selectedPRPoint {
-                        VStack(spacing: 4) {
-                            Text(pr.date.formatted(date: .abbreviated, time: .shortened))
+                VStack(spacing: 12) {
+                    ForEach(weeklySetsByMuscle, id: \.muscleGroup) { item in
+                        HStack(spacing: 12) {
+                            Text(item.muscleGroup.rawValue)
                                 .font(.caption)
                                 .foregroundColor(.gray)
-                            HStack(spacing: 4) {
-                                Text("\(Int(pr.est1RM))")
-                                    .font(.title3)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                Text(AppSettings.shared.preferredUnit.rawValue)
-                                    .font(.headline)
-                                    .foregroundColor(.blue)
-                            }
-                        }
-                        .padding(12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.black.opacity(0.9))
-                        )
-                        .shadow(color: Color.black.opacity(0.3), radius: 8, x: 0, y: 4)
-                        .position(tooltipPosition)
-                        .transition(.scale.combined(with: .opacity))
-                    }
-                }
-                .contentShape(Rectangle())
-                .gesture(
-                    DragGesture(minimumDistance: 0)
-                        .onChanged { value in
-                            if let dataPoint = findNearestDataPoint(to: value.location) {
-                                selectedPRPoint = dataPoint
-                                showTooltip = true
-                                tooltipPosition = value.location
-                            }
-                        }
-                        .onEnded { _ in
-                            withAnimation(.easeOut(duration: 0.3)) {
-                                showTooltip = false
-                            }
-                        }
-                )
+                                .frame(width: 70, alignment: .trailing)
 
-                if let bestPR = bestPR {
-                    HStack(spacing: 8) {
-                        Image(systemName: "star.fill")
-                            .foregroundColor(.yellow)
-                        Text("Best: \(Int(bestPR.est1RM)) \(AppSettings.shared.preferredUnit.rawValue)")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                            .foregroundColor(.white)
+                            GeometryReader { geo in
+                                let barWidth = max(CGFloat(item.sets) / CGFloat(maxSets) * geo.size.width, 30)
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(muscleGroupColors[item.muscleGroup] ?? .blue)
+                                    .frame(width: barWidth, height: 28)
+                                    .overlay(
+                                        Text("\(item.sets)")
+                                            .font(.caption)
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(.white)
+                                            .padding(.horizontal, 8),
+                                        alignment: .trailing
+                                    )
+                            }
+                            .frame(height: 28)
+                        }
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .background(Color.yellow.opacity(0.15))
-                    .cornerRadius(12)
                 }
             }
         }
@@ -471,115 +350,266 @@ struct AnalyticsView: View {
         .cornerRadius(16)
     }
 
-    private func findNearestDataPoint(to location: CGPoint) -> PRDataPoint? {
-        guard !prData.isEmpty else { return nil }
-        let sortedData = prData.sorted { $0.date < $1.date }
-        return sortedData.min { a, b in
-            abs(a.date.timeIntervalSince1970 - Double(location.x)) <
-            abs(b.date.timeIntervalSince1970 - Double(location.x))
-        }
-    }
+    // MARK: - Section 3: Strength Progress
 
-    private var totalWorkouts: Int {
-        sessions.filter { $0.isCompleted }.count
-    }
+    private struct ExerciseProgress: Identifiable {
+        let id = UUID()
+        let exerciseName: String
+        let muscleGroup: MuscleGroup
+        let thisWeekBest: Double
+        let priorBest: Double?
+        let isAssisted: Bool
 
-    private var totalSets: Int {
-        sessions.reduce(0) { sum, session in
-            sum + session.exercises.reduce(0) { exerciseSum, exercise in
-                exerciseSum + exercise.sets.count
+        var trend: Trend {
+            guard let prior = priorBest else { return .new }
+            if isAssisted {
+                if thisWeekBest < prior { return .improved }
+                else if thisWeekBest > prior { return .regressed }
+                else { return .same }
+            } else {
+                if thisWeekBest > prior { return .improved }
+                else if thisWeekBest < prior { return .regressed }
+                else { return .same }
             }
         }
-    }
 
-    private var totalPRs: Int {
-        sessions.reduce(0) { sum, session in
-            sum + session.exercises.reduce(0) { exerciseSum, exercise in
-                exerciseSum + exercise.sets.filter { $0.isPR }.count
-            }
+        enum Trend {
+            case improved, regressed, same, new
         }
     }
 
-    private var averageDuration: Int {
-        let completedSessions = sessions.filter { $0.isCompleted }
-        guard !completedSessions.isEmpty else { return 0 }
-        let total = completedSessions.reduce(0) { $0 + $1.duration }
-        return total / completedSessions.count
-    }
+    private var exerciseProgressData: [MuscleGroup: [ExerciseProgress]] {
+        var thisWeekMaxes: [String: (weight: Double, muscleGroup: MuscleGroup, isAssisted: Bool)] = [:]
+        var priorMaxes: [String: Double] = [:]
 
-    private func formatVolume(_ volume: Double) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.maximumFractionDigits = 0
-        return "\(formatter.string(from: NSNumber(value: volume)) ?? "0") kg"
-    }
+        for session in last7DaysSessions {
+            for exercise in session.exercises {
+                let isAssisted = PRCalculator.isAssistedExercise(exercise.exerciseName)
+                let weights = exercise.sets.map(\.weight).filter { $0 > 0 }
+                guard !weights.isEmpty else { continue }
 
-    private func formatDuration(_ seconds: Int) -> String {
-        let minutes = seconds / 60
-        let remainingSeconds = seconds % 60
-        return String(format: "%d:%02d", minutes, remainingSeconds)
-    }
+                let best = isAssisted ? weights.min()! : weights.max()!
 
-    private func exerciseMax1RM(_ exercise: String) -> Double {
-        var exerciseSets: [SetEntry] = []
-        for session in sessions {
-            for ex in session.exercises {
-                if ex.exerciseName == exercise {
-                    exerciseSets.append(contentsOf: ex.sets)
+                if let existing = thisWeekMaxes[exercise.exerciseName] {
+                    if isAssisted {
+                        if best < existing.weight {
+                            thisWeekMaxes[exercise.exerciseName] = (best, exercise.muscleGroup, isAssisted)
+                        }
+                    } else {
+                        if best > existing.weight {
+                            thisWeekMaxes[exercise.exerciseName] = (best, exercise.muscleGroup, isAssisted)
+                        }
+                    }
+                } else {
+                    thisWeekMaxes[exercise.exerciseName] = (best, exercise.muscleGroup, isAssisted)
                 }
             }
         }
-        return exerciseSets.map { $0.estimated1RM }.max() ?? 0.0
-    }
 
-    private var bestPR: PRDataPoint? {
-        prData.max { $0.est1RM < $1.est1RM }
-    }
-
-    private var uniqueExercises: [String] {
-        Set(sessions.flatMap { $0.exercises.map { $0.exerciseName } })
-            .filter { !PRCalculator.isAssistedExercise($0) }
-            .sorted()
-    }
-
-    private var volumeData: [VolumeDataPoint] {
-        var muscleVolumes: [MuscleGroup: Double] = [:]
-
-        for session in sessions {
+        for session in priorSessions {
             for exercise in session.exercises {
-                let exerciseVolume = exercise.sets.reduce(0.0) { sum, set in
-                    sum + (set.weight * Double(set.reps))
-                }
+                let isAssisted = PRCalculator.isAssistedExercise(exercise.exerciseName)
+                let weights = exercise.sets.map(\.weight).filter { $0 > 0 }
+                guard !weights.isEmpty else { continue }
 
-                muscleVolumes[exercise.muscleGroup, default: 0] += exerciseVolume
+                let best = isAssisted ? weights.min()! : weights.max()!
+
+                if let existing = priorMaxes[exercise.exerciseName] {
+                    if isAssisted {
+                        if best < existing { priorMaxes[exercise.exerciseName] = best }
+                    } else {
+                        if best > existing { priorMaxes[exercise.exerciseName] = best }
+                    }
+                } else {
+                    priorMaxes[exercise.exerciseName] = best
+                }
             }
         }
 
-        return muscleVolumes.map { muscle, volume in
-            VolumeDataPoint(muscleGroup: muscle, volume: Int(volume))
-        }.sorted { $0.volume > $1.volume }
+        var grouped: [MuscleGroup: [ExerciseProgress]] = [:]
+
+        for (name, data) in thisWeekMaxes {
+            let progress = ExerciseProgress(
+                exerciseName: name,
+                muscleGroup: data.muscleGroup,
+                thisWeekBest: data.weight,
+                priorBest: priorMaxes[name],
+                isAssisted: data.isAssisted
+            )
+            grouped[data.muscleGroup, default: []].append(progress)
+        }
+
+        for key in grouped.keys {
+            grouped[key]?.sort { $0.exerciseName < $1.exerciseName }
+        }
+
+        return grouped
     }
 
-    private var prData: [PRDataPoint] {
-        guard !selectedExercise.isEmpty else { return [] }
+    private var strengthProgress: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Strength Progress")
+                .font(.headline)
+                .foregroundColor(.white)
 
-        var exerciseSets: [(date: Date, est1RM: Double)] = []
+            let data = exerciseProgressData
+            if data.isEmpty {
+                Text("No exercises recorded this week")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 40)
+            } else {
+                let unit = AppSettings.shared.preferredUnit.rawValue
+                let sortedGroups = data.keys.sorted { $0.rawValue < $1.rawValue }
 
-        for session in sessions {
-            for exercise in session.exercises {
-                if exercise.exerciseName == selectedExercise {
-                    for set in exercise.sets {
-                        exerciseSets.append((date: set.timestamp, est1RM: set.estimated1RM))
+                ForEach(sortedGroups, id: \.self) { muscleGroup in
+                    if let exercises = data[muscleGroup] {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(spacing: 8) {
+                                Circle()
+                                    .fill(muscleGroupColors[muscleGroup] ?? .blue)
+                                    .frame(width: 8, height: 8)
+                                Text(muscleGroup.rawValue)
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(muscleGroupColors[muscleGroup] ?? .blue)
+                            }
+
+                            ForEach(exercises) { exercise in
+                                HStack {
+                                    Text(exercise.exerciseName)
+                                        .font(.subheadline)
+                                        .foregroundColor(.white)
+                                        .lineLimit(1)
+
+                                    Spacer()
+
+                                    exerciseTrendView(exercise: exercise, unit: unit)
+                                }
+                                .padding(.vertical, 4)
+                            }
+                        }
+                        .padding(.bottom, 8)
                     }
                 }
             }
         }
+        .padding(20)
+        .background(
+            LinearGradient(
+                colors: [Color.gray.opacity(0.08), Color.gray.opacity(0.02)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+        .cornerRadius(16)
+    }
 
-        return exerciseSets.sorted { $0.date < $1.date }.map { data in
-            PRDataPoint(date: data.date, est1RM: data.est1RM)
+    @ViewBuilder
+    private func exerciseTrendView(exercise: ExerciseProgress, unit: String) -> some View {
+        let thisWeek = formatWeight(exercise.thisWeekBest)
+
+        switch exercise.trend {
+        case .new:
+            Text("\(thisWeek) \(unit)")
+                .font(.subheadline)
+                .foregroundColor(.gray)
+            Text("NEW")
+                .font(.caption2)
+                .fontWeight(.bold)
+                .foregroundColor(.blue)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Color.blue.opacity(0.2))
+                .cornerRadius(4)
+
+        case .improved:
+            let prior = formatWeight(exercise.priorBest ?? 0)
+            Text("\(prior) \u{2192} \(thisWeek) \(unit)")
+                .font(.subheadline)
+                .foregroundColor(.white)
+            Image(systemName: "arrow.up")
+                .font(.caption)
+                .fontWeight(.bold)
+                .foregroundColor(.green)
+
+        case .regressed:
+            let prior = formatWeight(exercise.priorBest ?? 0)
+            Text("\(prior) \u{2192} \(thisWeek) \(unit)")
+                .font(.subheadline)
+                .foregroundColor(.white)
+            Image(systemName: "arrow.down")
+                .font(.caption)
+                .fontWeight(.bold)
+                .foregroundColor(.red)
+
+        case .same:
+            let prior = formatWeight(exercise.priorBest ?? 0)
+            Text("\(prior) \u{2192} \(thisWeek) \(unit)")
+                .font(.subheadline)
+                .foregroundColor(.white)
+            Image(systemName: "minus")
+                .font(.caption)
+                .fontWeight(.bold)
+                .foregroundColor(.gray)
+        }
+    }
+
+    private func formatWeight(_ weight: Double) -> String {
+        if weight == weight.rounded() {
+            return "\(Int(weight))"
+        }
+        return String(format: "%.1f", weight)
+    }
+
+    // MARK: - Section 4: Training Gaps
+
+    private var untrainedMuscleGroups: [MuscleGroup] {
+        let trainedGroups = Set(weeklySetsByMuscle.map(\.muscleGroup))
+        return MuscleGroup.allCases.filter { !trainedGroups.contains($0) }
+    }
+
+    private var trainingGaps: some View {
+        Group {
+            if !untrainedMuscleGroups.isEmpty {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Training Gaps")
+                        .font(.headline)
+                        .foregroundColor(.white)
+
+                    ForEach(untrainedMuscleGroups, id: \.self) { muscleGroup in
+                        HStack(spacing: 12) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundColor(.orange)
+                                .font(.subheadline)
+
+                            Text("You haven't trained \(muscleGroup.rawValue) this week")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+
+                            Spacer()
+                        }
+                        .padding(12)
+                        .background(Color.orange.opacity(0.08))
+                        .cornerRadius(10)
+                    }
+                }
+                .padding(20)
+                .background(
+                    LinearGradient(
+                        colors: [Color.gray.opacity(0.08), Color.gray.opacity(0.02)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .cornerRadius(16)
+            }
         }
     }
 }
+
+// MARK: - Supporting Views
 
 struct StatCard: View {
     let icon: String
@@ -616,16 +646,4 @@ struct StatCard: View {
         )
         .cornerRadius(12)
     }
-}
-
-struct VolumeDataPoint: Identifiable {
-    let id = UUID()
-    let muscleGroup: MuscleGroup
-    let volume: Int
-}
-
-struct PRDataPoint: Identifiable {
-    let id = UUID()
-    let date: Date
-    let est1RM: Double
 }
