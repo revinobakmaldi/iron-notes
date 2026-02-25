@@ -27,15 +27,96 @@ struct AnalyticsView: View {
         return days
     }
 
-    var timeBasedGreeting: String {
-        let hour = Calendar.current.component(.hour, from: Date())
-        if hour < 12 {
-            return "Good morning"
-        } else if hour < 17 {
-            return "Good afternoon"
-        } else {
-            return "Good evening"
+    var longestUntrainedMuscle: (group: MuscleGroup, days: Int)? {
+        let calendar = Calendar.current
+        let completedSessions = sessions.filter { $0.isCompleted }
+        guard !completedSessions.isEmpty else { return nil }
+
+        var oldest: (group: MuscleGroup, days: Int)?
+
+        for muscle in MuscleGroup.selectableCases {
+            let lastTrained = completedSessions
+                .filter { session in session.exercises.contains { $0.muscleGroup == muscle } }
+                .map(\.date)
+                .max()
+
+            let days: Int
+            if let lastDate = lastTrained {
+                days = calendar.dateComponents([.day], from: lastDate, to: Date()).day ?? 0
+            } else {
+                days = 999
+            }
+
+            if let current = oldest {
+                if days > current.days { oldest = (muscle, days) }
+            } else {
+                oldest = (muscle, days)
+            }
         }
+
+        return oldest
+    }
+
+    var contextualCTA: String {
+        let daySeed = Calendar.current.component(.day, from: Date())
+        let completedSessions = sessions.filter { $0.isCompleted }
+
+        func pick(_ options: [String]) -> String {
+            options[daySeed % options.count]
+        }
+
+        // Priority 1: No sessions ever
+        if completedSessions.isEmpty {
+            return pick([
+                "Every PR starts with rep one.",
+                "Iron therapy starts now.",
+                "The hardest part is showing up. You're here."
+            ])
+        }
+
+        // Priority 2: Rest days >= 3
+        if consecutiveRestDays >= 3 {
+            return pick([
+                "\(consecutiveRestDays) days off — the barbell misses you.",
+                "Your muscles are recovered. Time to go.",
+                "Rest is done. Let's work."
+            ])
+        }
+
+        // Priority 3: Worked out today
+        if daysSinceLastWorkout == 0 {
+            return pick([
+                "Already crushed it today. Legend.",
+                "Double session? Respect.",
+                "Today's work is done. Recovery mode."
+            ])
+        }
+
+        // Priority 4: Longest untrained muscle group >= 5 days
+        if let untrained = longestUntrainedMuscle, untrained.days >= 5, untrained.days < 999 {
+            let name = untrained.group.rawValue
+            return pick([
+                "\(name) was \(untrained.days) days ago...",
+                "\(name) is waiting for you."
+            ])
+        }
+
+        // Priority 5: Good streak (3+ days this week)
+        if workoutsThisWeek >= 3 {
+            return pick([
+                "\(workoutsThisWeek) days in — momentum is real.",
+                "Consistency beats intensity.",
+                "You're on a roll this week."
+            ])
+        }
+
+        // Priority 6: Fallback
+        return pick([
+            "Trust the process.",
+            "One more set than yesterday.",
+            "Discipline over motivation.",
+            "Show up. Lift. Repeat."
+        ])
     }
 
     let muscleGroupColors: [MuscleGroup: Color] = [
@@ -72,6 +153,13 @@ struct AnalyticsView: View {
                     motivationalHeader
                     startWorkoutButton
 
+                    Text(contextualCTA)
+                        .font(.title3)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white.opacity(0.8))
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.horizontal)
+
                     if sessions.isEmpty {
                         emptyState
                     } else {
@@ -91,7 +179,7 @@ struct AnalyticsView: View {
                 .padding(.top)
             }
         }
-        .navigationTitle("Home")
+        .navigationTitle("IronNotes")
         .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $showNewWorkout) {
             NewWorkoutSheet(isPresented: $showNewWorkout)
@@ -102,11 +190,6 @@ struct AnalyticsView: View {
 
     private var motivationalHeader: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("\(timeBasedGreeting), let's crush it!")
-                .font(.title)
-                .fontWeight(.bold)
-                .foregroundColor(.white)
-
             HStack(spacing: 16) {
                 Label("\(workoutsThisWeek) \(workoutsThisWeek == 1 ? "workout" : "workouts") this week", systemImage: "calendar")
                     .font(.subheadline)
