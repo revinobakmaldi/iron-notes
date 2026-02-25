@@ -78,7 +78,10 @@ struct AnalyticsView: View {
                     } else {
                         VStack(spacing: 24) {
                             weeklyCalendarStrip
+                            restDayWarning
+                            weeklyDurationSummary
                             weeklySetsByMuscleGroup
+                            topSetHighlights
                             strengthProgress
                             trainingGaps
                         }
@@ -561,6 +564,237 @@ struct AnalyticsView: View {
             return "\(Int(weight))"
         }
         return String(format: "%.1f", weight)
+    }
+
+    // MARK: - Rest Day Streak Warning
+
+    private var consecutiveRestDays: Int {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        var streak = 0
+        for offset in 0..<30 {
+            let day = calendar.date(byAdding: .day, value: -offset, to: today)!
+            let hasWorkout = sessions.contains { session in
+                session.isCompleted && calendar.isDate(session.date, inSameDayAs: day)
+            }
+            if hasWorkout { break }
+            streak += 1
+        }
+        return streak
+    }
+
+    private var restDayWarning: some View {
+        Group {
+            if consecutiveRestDays >= 3 {
+                HStack(spacing: 12) {
+                    Image(systemName: "bed.double.fill")
+                        .font(.title3)
+                        .foregroundColor(.orange)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("\(consecutiveRestDays) days rest")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                        Text("Ready to get back at it?")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "flame.fill")
+                        .foregroundColor(.orange.opacity(0.6))
+                }
+                .padding(16)
+                .background(Color.orange.opacity(0.1))
+                .cornerRadius(12)
+            }
+        }
+    }
+
+    // MARK: - Weekly Duration Summary
+
+    private var weeklyTotalDuration: Int {
+        last7DaysSessions.reduce(0) { $0 + $1.duration }
+    }
+
+    private var weeklyAvgDuration: Int {
+        guard !last7DaysSessions.isEmpty else { return 0 }
+        return weeklyTotalDuration / last7DaysSessions.count
+    }
+
+    private func formatDuration(_ seconds: Int) -> String {
+        let hours = seconds / 3600
+        let minutes = (seconds % 3600) / 60
+        if hours > 0 {
+            return "\(hours)h \(minutes)m"
+        }
+        return "\(minutes)m"
+    }
+
+    private var weeklyDurationSummary: some View {
+        Group {
+            if !last7DaysSessions.isEmpty {
+                HStack(spacing: 0) {
+                    VStack(spacing: 4) {
+                        Image(systemName: "clock.fill")
+                            .font(.title3)
+                            .foregroundColor(.green)
+                        Text(formatDuration(weeklyTotalDuration))
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                        Text("Total")
+                            .font(.caption2)
+                            .foregroundColor(.gray)
+                    }
+                    .frame(maxWidth: .infinity)
+
+                    Divider()
+                        .frame(height: 40)
+                        .background(Color.gray.opacity(0.3))
+
+                    VStack(spacing: 4) {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .font(.title3)
+                            .foregroundColor(.blue)
+                        Text(formatDuration(weeklyAvgDuration))
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                        Text("Avg / Session")
+                            .font(.caption2)
+                            .foregroundColor(.gray)
+                    }
+                    .frame(maxWidth: .infinity)
+
+                    Divider()
+                        .frame(height: 40)
+                        .background(Color.gray.opacity(0.3))
+
+                    VStack(spacing: 4) {
+                        Image(systemName: "figure.strengthtraining.traditional")
+                            .font(.title3)
+                            .foregroundColor(.purple)
+                        Text("\(last7DaysSessions.reduce(0) { $0 + $1.exercises.count })")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                        Text("Exercises")
+                            .font(.caption2)
+                            .foregroundColor(.gray)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .padding(16)
+                .background(
+                    LinearGradient(
+                        colors: [Color.gray.opacity(0.08), Color.gray.opacity(0.02)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .cornerRadius(16)
+            }
+        }
+    }
+
+    // MARK: - Top Set Highlights
+
+    private struct TopSet: Identifiable {
+        let id = UUID()
+        let exerciseName: String
+        let weight: Double
+        let reps: Int
+        let date: Date
+        let muscleGroup: MuscleGroup
+    }
+
+    private var topSetHighlightsData: [TopSet] {
+        let calendar = Calendar.current
+        var topPerSession: [Date: TopSet] = [:]
+
+        for session in last7DaysSessions {
+            let sessionDay = calendar.startOfDay(for: session.date)
+            for exercise in session.exercises {
+                let isAssisted = PRCalculator.isAssistedExercise(exercise.exerciseName)
+                if isAssisted { continue }
+                for set in exercise.sets where set.weight > 0 {
+                    if let existing = topPerSession[sessionDay] {
+                        if set.weight > existing.weight {
+                            topPerSession[sessionDay] = TopSet(
+                                exerciseName: exercise.exerciseName,
+                                weight: set.weight,
+                                reps: set.reps,
+                                date: session.date,
+                                muscleGroup: exercise.muscleGroup
+                            )
+                        }
+                    } else {
+                        topPerSession[sessionDay] = TopSet(
+                            exerciseName: exercise.exerciseName,
+                            weight: set.weight,
+                            reps: set.reps,
+                            date: session.date,
+                            muscleGroup: exercise.muscleGroup
+                        )
+                    }
+                }
+            }
+        }
+
+        return topPerSession.values.sorted { $0.date > $1.date }
+    }
+
+    private var topSetHighlights: some View {
+        Group {
+            let highlights = topSetHighlightsData
+            if !highlights.isEmpty {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Top Sets This Week")
+                        .font(.headline)
+                        .foregroundColor(.white)
+
+                    ForEach(highlights) { topSet in
+                        HStack(spacing: 12) {
+                            Image(systemName: "trophy.fill")
+                                .foregroundColor(.yellow)
+                                .font(.subheadline)
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(topSet.exerciseName)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.white)
+                                Text(topSet.date.formatted(.dateTime.weekday(.wide)))
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+
+                            Spacer()
+
+                            Text("\(formatWeight(topSet.weight))\(AppSettings.shared.preferredUnit.rawValue) x \(topSet.reps)")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(muscleGroupColors[topSet.muscleGroup] ?? .blue)
+                        }
+                        .padding(12)
+                        .background(Color.yellow.opacity(0.05))
+                        .cornerRadius(10)
+                    }
+                }
+                .padding(20)
+                .background(
+                    LinearGradient(
+                        colors: [Color.gray.opacity(0.08), Color.gray.opacity(0.02)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .cornerRadius(16)
+            }
+        }
     }
 
     // MARK: - Section 4: Training Gaps
