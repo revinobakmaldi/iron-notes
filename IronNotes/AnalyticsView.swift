@@ -154,9 +154,9 @@ struct AnalyticsView: View {
                     startWorkoutButton
 
                     Text(contextualCTA)
-                        .font(.title3)
-                        .fontWeight(.medium)
-                        .foregroundColor(.white.opacity(0.8))
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white.opacity(0.85))
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding(.horizontal)
 
