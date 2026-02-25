@@ -71,7 +71,7 @@ struct SettingsView: View {
                 Section {
                     HStack {
                         Picker("Muscle Group", selection: $selectedMuscleGroup) {
-                            ForEach(MuscleGroup.allCases, id: \.self) { group in
+                            ForEach(MuscleGroup.selectableCases, id: \.self) { group in
                                 Text(group.rawValue).tag(group)
                             }
                         }

@@ -44,8 +44,7 @@ struct AnalyticsView: View {
         .LEGS: Color(red: 0.35, green: 0.8, blue: 0.45),
         .SHOULDERS: Color(red: 0.95, green: 0.65, blue: 0.25),
         .ARMS: Color(red: 0.75, green: 0.4, blue: 0.8),
-        .CORE: Color(red: 0.35, green: 0.7, blue: 0.85),
-        .FULL_BODY: Color(red: 0.5, green: 0.5, blue: 0.95)
+        .CORE: Color(red: 0.35, green: 0.7, blue: 0.85)
     ]
 
     // MARK: - Data Filtering
@@ -801,7 +800,7 @@ struct AnalyticsView: View {
 
     private var untrainedMuscleGroups: [MuscleGroup] {
         let trainedGroups = Set(weeklySetsByMuscle.map(\.muscleGroup))
-        return MuscleGroup.allCases.filter { !trainedGroups.contains($0) }
+        return MuscleGroup.selectableCases.filter { !trainedGroups.contains($0) }
     }
 
     private var trainingGaps: some View {

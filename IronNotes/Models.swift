@@ -9,6 +9,11 @@ enum MuscleGroup: String, CaseIterable, Codable {
     case ARMS = "Arms"
     case CORE = "Core"
     case FULL_BODY = "Full Body"
+
+    /// Muscle groups selectable for exercises (excludes split-level categories like Full Body)
+    static var selectableCases: [MuscleGroup] {
+        allCases.filter { $0 != .FULL_BODY }
+    }
 }
 
 @Model
