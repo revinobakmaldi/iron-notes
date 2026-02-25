@@ -5,7 +5,9 @@ struct ContentView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            AnalyticsView()
+            NavigationStack {
+                AnalyticsView()
+            }
                 .tabItem {
                     Label("Analytics", systemImage: "chart.line.uptrend.xyaxis")
                 }

@@ -145,40 +145,37 @@ struct AnalyticsView: View {
     // MARK: - Body
 
     var body: some View {
-        ZStack {
-            Color.black.ignoresSafeArea()
+        ScrollView {
+            VStack(spacing: 24) {
+                motivationalHeader
+                startWorkoutButton
 
-            ScrollView {
-                VStack(spacing: 24) {
-                    motivationalHeader
-                    startWorkoutButton
+                Text(contextualCTA)
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white.opacity(0.85))
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.horizontal)
 
-                    Text(contextualCTA)
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white.opacity(0.85))
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding(.horizontal)
-
-                    if sessions.isEmpty {
-                        emptyState
-                    } else {
-                        VStack(spacing: 24) {
-                            weeklyCalendarStrip
-                            restDayWarning
-                            weeklyDurationSummary
-                            weeklySetsByMuscleGroup
-                            topSetHighlights
-                            strengthProgress
-                            trainingGaps
-                        }
-                        .padding(.horizontal)
-                        .padding(.bottom, 20)
+                if sessions.isEmpty {
+                    emptyState
+                } else {
+                    VStack(spacing: 24) {
+                        weeklyCalendarStrip
+                        restDayWarning
+                        weeklyDurationSummary
+                        weeklySetsByMuscleGroup
+                        topSetHighlights
+                        strengthProgress
+                        trainingGaps
                     }
+                    .padding(.horizontal)
+                    .padding(.bottom, 20)
                 }
-                .padding(.top)
             }
+            .padding(.top)
         }
+        .background(Color.black)
         .navigationTitle("IronNotes")
         .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $showNewWorkout) {
