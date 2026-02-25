@@ -177,7 +177,20 @@ struct AnalyticsView: View {
         }
         .background(Color.black)
         .navigationTitle("IronNotes")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                HStack(spacing: 6) {
+                    Image(systemName: "figure.strengthtraining.traditional")
+                        .font(.headline)
+                        .foregroundColor(.blue)
+                    Text("IronNotes")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                }
+            }
+        }
         .sheet(isPresented: $showNewWorkout) {
             NewWorkoutSheet(isPresented: $showNewWorkout)
         }
