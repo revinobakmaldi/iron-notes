@@ -305,10 +305,12 @@ struct NewWorkoutSheet: View {
             session.date = date
         }
         
-        // Set duration if backdated - mark as completed immediately
+        // Set duration if backdated - but don't auto-complete anymore
+        // User can still add exercises before finishing
         if customDuration > 0 {
             session.duration = customDuration
-            session.isCompleted = true
+            // Removed: session.isCompleted = true
+            // User will manually finish when done adding exercises
         }
 
         modelContext.insert(session)
@@ -341,55 +343,62 @@ struct DatePickerSheet: View {
 
     var body: some View {
         NavigationView {
-            ZStack {
-                Color.black.ignoresSafeArea()
+            VStack(spacing: 24) {
+                // Start Time
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("START")
+                        .font(.caption)
+                        .fontWeight(.bold)
+                        .foregroundColor(.blue)
+                    
+                    DatePicker(
+                        "Start",
+                        selection: $selectedDate,
+                        displayedComponents: [.date, .hourAndMinute]
+                    )
+                    .datePickerStyle(.compact)
+                    .colorScheme(.dark)
+                    .padding()
+                    .background(Color.gray.opacity(0.2))
+                    .cornerRadius(12)
+                }
+                .padding(.horizontal)
                 
-                VStack(spacing: 20) {
-                    // Start Time
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("START")
-                            .font(.caption)
-                            .fontWeight(.bold)
-                            .foregroundColor(.blue)
-                        
-                        DatePicker(
-                            "Start",
-                            selection: $selectedDate,
-                            displayedComponents: [.date, .hourAndMinute]
-                        )
-                        .datePickerStyle(.graphical)
-                        .colorScheme(.dark)
-                    }
-                    .padding(.horizontal)
+                // End Time
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("END")
+                        .font(.caption)
+                        .fontWeight(.bold)
+                        .foregroundColor(.orange)
                     
-                    // End Time
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("END")
-                            .font(.caption)
-                            .fontWeight(.bold)
-                            .foregroundColor(.orange)
-                        
-                        DatePicker(
-                            "End",
-                            selection: $endDate,
-                            in: selectedDate...,
-                            displayedComponents: [.date, .hourAndMinute]
-                        )
-                        .datePickerStyle(.graphical)
-                        .colorScheme(.dark)
-                    }
-                    .padding(.horizontal)
-                    
-                    // Duration display
-                    Text("Duration: \(formattedDuration)")
+                    DatePicker(
+                        "End",
+                        selection: $endDate,
+                        in: selectedDate...,
+                        displayedComponents: [.date, .hourAndMinute]
+                    )
+                    .datePickerStyle(.compact)
+                    .colorScheme(.dark)
+                    .padding()
+                    .background(Color.gray.opacity(0.2))
+                    .cornerRadius(12)
+                }
+                .padding(.horizontal)
+                
+                // Duration display
+                HStack {
+                    Text("Duration:")
+                        .foregroundColor(.gray)
+                    Text(formattedDuration)
                         .font(.headline)
                         .foregroundColor(.green)
-                        .padding(.top, 10)
-                    
-                    Spacer()
                 }
-                .padding(.top, 20)
+                .padding(.top, 10)
+                
+                Spacer()
             }
+            .padding(.top, 20)
+            .background(Color.black.ignoresSafeArea())
             .navigationTitle("Backdate Session")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
