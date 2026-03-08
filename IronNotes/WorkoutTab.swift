@@ -320,7 +320,7 @@ struct NewWorkoutSheet: View {
 struct DatePickerSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var selectedDate: Date
-    let onConfirm: (Date, Date) -> Void
+    let onConfirm: (Date, Int) -> Void
     
     @State private var endDate: Date = Date().addingTimeInterval(3600) // +1 hour default
     

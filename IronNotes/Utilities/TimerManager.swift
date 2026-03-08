@@ -35,7 +35,7 @@ class TimerManager {
         isActive = false
         cancelNotification()
 
-        if let start = startTime, let end = targetEndTime {
+        if let start = startTime, targetEndTime != nil {
             let elapsed = Int(Date().timeIntervalSince(start))
             remainingTime = max(0, remainingTime - elapsed)
             targetEndTime = nil
