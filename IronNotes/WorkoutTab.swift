@@ -249,20 +249,28 @@ struct NewWorkoutSheet: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Binding var isPresented: Bool
+    
+    @State private var showDatePicker = false
+    @State private var selectedDate = Date()
 
     var body: some View {
         NavigationView {
             Form {
                 Section {
                     Button("Start Fresh") {
-                        startWorkout(cloneLast: false)
+                        startWorkout(cloneLast: false, customDate: nil)
                     }
                     .foregroundColor(.blue)
 
                     Button("Clone Last Workout") {
-                        startWorkout(cloneLast: true)
+                        startWorkout(cloneLast: true, customDate: nil)
                     }
                     .foregroundColor(.blue)
+                    
+                    Button("Backdate Session") {
+                        showDatePicker = true
+                    }
+                    .foregroundColor(.orange)
                 }
             }
             .navigationTitle("New Workout")
@@ -275,10 +283,15 @@ struct NewWorkoutSheet: View {
                 }
             }
             .background(Color.black)
+            .sheet(isPresented: $showDatePicker) {
+                DatePickerSheet(selectedDate: $selectedDate) { startDate, duration in
+                    startWorkout(cloneLast: false, customDate: startDate, customDuration: duration)
+                }
+            }
         }
     }
 
-    private func startWorkout(cloneLast: Bool) {
+    private func startWorkout(cloneLast: Bool, customDate: Date?, customDuration: Int = 0) {
         let session: WorkoutSession
 
         if cloneLast {
@@ -286,9 +299,126 @@ struct NewWorkoutSheet: View {
         } else {
             session = WorkoutSession()
         }
+        
+        // Override date if backdated
+        if let date = customDate {
+            session.date = date
+        }
+        
+        // Set duration if backdated - but don't auto-complete anymore
+        // User can still add exercises before finishing
+        if customDuration > 0 {
+            session.duration = customDuration
+            // Removed: session.isCompleted = true
+            // User will manually finish when done adding exercises
+        }
 
         modelContext.insert(session)
         isPresented = false
         dismiss()
+    }
+}
+
+struct DatePickerSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var selectedDate: Date
+    let onConfirm: (Date, Int) -> Void
+    
+    @State private var endDate: Date = Date().addingTimeInterval(3600) // +1 hour default
+    
+    private var durationMinutes: Int {
+        Int(endDate.timeIntervalSince(selectedDate)) / 60
+    }
+    
+    private var formattedDuration: String {
+        let mins = durationMinutes
+        if mins < 0 { return "Invalid" }
+        let h = mins / 60
+        let m = mins % 60
+        if h > 0 {
+            return m > 0 ? "\(h)h \(m)m" : "\(h)h"
+        }
+        return "\(m)m"
+    }
+
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 24) {
+                // Start Time
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("START")
+                        .font(.caption)
+                        .fontWeight(.bold)
+                        .foregroundColor(.blue)
+                    
+                    DatePicker(
+                        "Start",
+                        selection: $selectedDate,
+                        displayedComponents: [.date, .hourAndMinute]
+                    )
+                    .datePickerStyle(.compact)
+                    .colorScheme(.dark)
+                    .padding()
+                    .background(Color.gray.opacity(0.2))
+                    .cornerRadius(12)
+                }
+                .padding(.horizontal)
+                
+                // End Time
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("END")
+                        .font(.caption)
+                        .fontWeight(.bold)
+                        .foregroundColor(.orange)
+                    
+                    DatePicker(
+                        "End",
+                        selection: $endDate,
+                        in: selectedDate...,
+                        displayedComponents: [.date, .hourAndMinute]
+                    )
+                    .datePickerStyle(.compact)
+                    .colorScheme(.dark)
+                    .padding()
+                    .background(Color.gray.opacity(0.2))
+                    .cornerRadius(12)
+                }
+                .padding(.horizontal)
+                
+                // Duration display
+                HStack {
+                    Text("Duration:")
+                        .foregroundColor(.gray)
+                    Text(formattedDuration)
+                        .font(.headline)
+                        .foregroundColor(.green)
+                }
+                .padding(.top, 10)
+                
+                Spacer()
+            }
+            .padding(.top, 20)
+            .background(Color.black.ignoresSafeArea())
+            .navigationTitle("Backdate Session")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .foregroundColor(.gray)
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Confirm") {
+                        let duration = Int(endDate.timeIntervalSince(selectedDate))
+                        onConfirm(selectedDate, duration)
+                        dismiss()
+                    }
+                    .foregroundColor(.orange)
+                    .fontWeight(.bold)
+                }
+            }
+            .preferredColorScheme(.dark)
+        }
     }
 }

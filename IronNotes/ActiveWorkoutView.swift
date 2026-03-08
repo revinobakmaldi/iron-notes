@@ -29,20 +29,20 @@ struct ActiveWorkoutView: View {
 
                             Spacer()
 
-                            Button(action: {
-                                if !session.isCompleted {
+                            if !session.isCompleted {
+                                Button(action: {
                                     showFinishWorkout = true
+                                }) {
+                                    Text("Finish")
+                                        .font(.headline)
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 20)
+                                        .padding(.vertical, 10)
+                                        .background(Color.blue)
+                                        .cornerRadius(10)
                                 }
-                            }) {
-                                Text(session.isCompleted ? "Completed" : "Finish")
-                                    .font(.headline)
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 10)
-                                    .background(session.isCompleted ? Color.gray : Color.blue)
-                                    .cornerRadius(10)
+                                .frame(minWidth: 44, minHeight: 44)
                             }
-                            .frame(minWidth: 44, minHeight: 44)
                         }
                         .padding(.horizontal)
                         .padding(.top, 10)
@@ -198,10 +198,13 @@ struct ActiveWorkoutView: View {
     }
 
     private func finishWorkout() {
-        let endTime = Date()
-        let durationInSeconds = Int(endTime.timeIntervalSince(session.date))
-
-        session.duration = durationInSeconds
+        // Only auto-calculate if duration wasn't manually set
+        if session.duration == 0 {
+            let endTime = Date()
+            let durationInSeconds = Int(endTime.timeIntervalSince(session.date))
+            session.duration = durationInSeconds
+        }
+        
         session.isCompleted = true
 
         HapticManager.success()
