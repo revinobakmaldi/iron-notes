@@ -294,6 +294,8 @@ struct AddExerciseSheet: View {
                     }
                 }
                 .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+                .background(Color.black)
                 .searchable(text: $searchText, prompt: "Search exercises")
                 .navigationTitle("Add Exercise")
                 .navigationBarTitleDisplayMode(.inline)
@@ -315,6 +317,7 @@ struct AddExerciseSheet: View {
                     }
                 }
             }
+            .background(Color.black)
         }
         .sheet(isPresented: $showAddNewExercise) {
             NewExerciseSheet(muscleGroup: selectedMuscleGroup)

@@ -273,6 +273,8 @@ struct NewWorkoutSheet: View {
                     .foregroundColor(.orange)
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Color.black)
             .navigationTitle("New Workout")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -282,7 +284,6 @@ struct NewWorkoutSheet: View {
                     }
                 }
             }
-            .background(Color.black)
             .sheet(isPresented: $showDatePicker) {
                 DatePickerSheet(selectedDate: $selectedDate) { startDate, duration in
                     startWorkout(cloneLast: false, customDate: startDate, customDuration: duration)

@@ -16,6 +16,8 @@ struct NewExerciseSheet: View {
                         .autocapitalization(.none)
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Color.black)
             .navigationTitle("Add to Master")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -66,6 +68,8 @@ struct EditExerciseSheet: View {
                         .autocapitalization(.none)
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Color.black)
             .navigationTitle("Edit Exercise")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
