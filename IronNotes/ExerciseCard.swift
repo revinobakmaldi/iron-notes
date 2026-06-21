@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct ExerciseCard: View {
     let exercise: ExerciseLog
@@ -122,6 +123,7 @@ struct ExerciseCard: View {
 
     private var previousSessionSummary: some View {
         let totalSets = previousSets.count
+        let totalReps = previousSets.reduce(0) { $0 + $1.reps }
         let assisted = PRCalculator.isAssistedExercise(exercise.exerciseName)
         let bestWeight = assisted
             ? (previousSets.map(\.weight).min() ?? 0)
@@ -133,6 +135,12 @@ struct ExerciseCard: View {
                 icon: "figure.strengthtraining.traditional",
                 value: "\(totalSets)",
                 label: totalSets == 1 ? "set" : "sets"
+            )
+
+            SummaryItem(
+                icon: "repeat",
+                value: "\(totalReps)",
+                label: totalReps == 1 ? "rep" : "reps"
             )
 
             SummaryItem(
