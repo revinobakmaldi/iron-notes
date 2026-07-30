@@ -6,6 +6,11 @@ struct ExerciseCard: View {
     var previousSets: [SetEntry] = []
     let isSelected: Bool
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppSettings.self) private var settings
+
+    private var unitLabel: String {
+        settings.preferredUnit.rawValue
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -69,13 +74,19 @@ struct ExerciseCard: View {
                 Text("Weight")
                     .font(.caption)
                     .fontWeight(.bold)
-                    .frame(width: 100, alignment: .center)
+                    .frame(width: 110, alignment: .center)
                     .foregroundColor(.gray)
 
                 Text("Reps")
                     .font(.caption)
                     .fontWeight(.bold)
                     .frame(width: 80, alignment: .center)
+                    .foregroundColor(.gray)
+
+                Text("Sets")
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .frame(width: 50, alignment: .center)
                     .foregroundColor(.gray)
 
                 Spacer()
@@ -88,14 +99,19 @@ struct ExerciseCard: View {
 
             ForEach(exercise.sets.sorted(by: { $0.timestamp < $1.timestamp })) { set in
                 HStack {
-                    Text("\(Int(set.weight))kg")
+                    Text(setWeightLabel(set))
                         .font(.subheadline)
-                        .frame(width: 100, alignment: .center)
+                        .frame(width: 110, alignment: .center)
                         .foregroundColor(.white)
 
                     Text("\(set.reps)")
                         .font(.subheadline)
                         .frame(width: 80, alignment: .center)
+                        .foregroundColor(.white)
+
+                    Text("\(set.setCount)")
+                        .font(.subheadline)
+                        .frame(width: 50, alignment: .center)
                         .foregroundColor(.white)
 
                     Spacer()
@@ -122,8 +138,8 @@ struct ExerciseCard: View {
     }
 
     private var previousSessionSummary: some View {
-        let totalSets = previousSets.count
-        let totalReps = previousSets.reduce(0) { $0 + $1.reps }
+        let totalSets = previousSets.reduce(0) { $0 + $1.setCount }
+        let totalReps = previousSets.reduce(0) { $0 + ($1.reps * $1.setCount) }
         let assisted = PRCalculator.isAssistedExercise(exercise.exerciseName)
         let bestWeight = assisted
             ? (previousSets.map(\.weight).min() ?? 0)
@@ -145,7 +161,7 @@ struct ExerciseCard: View {
 
             SummaryItem(
                 icon: "scalemass",
-                value: "\(Int(bestWeight))kg",
+                value: "\(formatWeight(bestWeight))\(unitLabel)",
                 label: assisted ? "min" : "max"
             )
 
@@ -166,6 +182,18 @@ struct ExerciseCard: View {
         .padding()
         .background(Color.gray.opacity(0.05))
         .cornerRadius(8)
+    }
+
+    private func setWeightLabel(_ set: SetEntry) -> String {
+        let singleArmSuffix = set.isSingleArm ? " SA" : ""
+        return "\(formatWeight(set.weight))\(unitLabel)\(singleArmSuffix)"
+    }
+
+    private func formatWeight(_ weight: Double) -> String {
+        if weight == weight.rounded() {
+            return "\(Int(weight))"
+        }
+        return String(format: "%.1f", weight)
     }
 }
 

@@ -4,15 +4,18 @@ struct WorkoutSummaryView: View {
     let session: WorkoutSession
     let onComplete: () -> Void
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppSettings.self) private var settings
 
     var totalSets: Int {
-        session.exercises.reduce(0) { $0 + $1.sets.count }
+        session.exercises.reduce(0) { total, exercise in
+            total + exercise.sets.reduce(0) { $0 + $1.setCount }
+        }
     }
 
     var totalVolume: Double {
         session.exercises.reduce(0.0) { sum, exercise in
             sum + exercise.sets.reduce(0.0) { setSum, set in
-                setSum + (set.weight * Double(set.reps))
+                setSum + (set.weight * Double(set.reps) * Double(set.setCount))
             }
         }
     }
@@ -60,7 +63,7 @@ struct WorkoutSummaryView: View {
                             SummaryRow(
                                 icon: "scalemass",
                                 title: "Total Volume",
-                                value: "\(Int(totalVolume))kg"
+                                value: "\(formatWeight(totalVolume))\(settings.preferredUnit.rawValue)"
                             )
 
                             if prCount > 0 {
@@ -150,6 +153,13 @@ struct WorkoutSummaryView: View {
         } else {
             return String(format: "%d:%02d", minutes, remainingSeconds)
         }
+    }
+
+    private func formatWeight(_ weight: Double) -> String {
+        if weight == weight.rounded() {
+            return "\(Int(weight))"
+        }
+        return String(format: "%.1f", weight)
     }
 }
 
