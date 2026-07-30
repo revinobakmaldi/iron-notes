@@ -22,6 +22,20 @@ struct ExerciseCard: View {
 
                 Spacer()
 
+                NavigationLink {
+                    ExerciseProgressView(
+                        exerciseName: exercise.exerciseName,
+                        muscleGroup: exercise.muscleGroup
+                    )
+                } label: {
+                    Image(systemName: "clock.arrow.circlepath")
+                        .font(.system(size: 16))
+                        .foregroundColor(.blue)
+                        .frame(width: 44, height: 44)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("View exercise history")
+
                 Text(exercise.muscleGroup.rawValue)
                     .font(.caption)
                     .padding(.horizontal, 12)
