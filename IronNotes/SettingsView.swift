@@ -1,12 +1,24 @@
 import SwiftUI
+import SwiftData
+import UniformTypeIdentifiers
 
 struct SettingsView: View {
+    @Environment(\.modelContext) private var modelContext
     @Environment(AppSettings.self) private var settings
+    @Query(sort: \WorkoutSession.date, order: .reverse) private var sessions: [WorkoutSession]
 
     @State private var selectedMuscleGroup = MuscleGroup.CHEST
     @State private var showAddExercise = false
     @State private var exerciseToEdit: (exercise: MasterExercise, muscleGroup: MuscleGroup)?
     @State private var showEditExercise = false
+    @State private var backupDocument = BackupDocument()
+    @State private var showExporter = false
+    @State private var showImporter = false
+    @State private var pendingImportData: Data?
+    @State private var showImportConfirmation = false
+    @State private var alertTitle = ""
+    @State private var alertMessage = ""
+    @State private var showAlert = false
 
     var body: some View {
         ZStack {
@@ -91,6 +103,26 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    Button(action: exportBackup) {
+                        Label("Export Backup", systemImage: "square.and.arrow.up")
+                    }
+                    .foregroundColor(.blue)
+
+                    Button(action: {
+                        showImporter = true
+                    }) {
+                        Label("Import Backup", systemImage: "square.and.arrow.down")
+                    }
+                    .foregroundColor(.orange)
+                } header: {
+                    Text("Backup")
+                        .foregroundColor(.white)
+                } footer: {
+                    Text("Importing a backup replaces local workouts, settings, and master exercises.")
+                        .foregroundColor(.gray)
+                }
+
+                Section {
                     HStack {
                         Text("Version")
                             .foregroundColor(.white)
@@ -136,6 +168,40 @@ struct SettingsView: View {
             if let exerciseToEdit = exerciseToEdit {
                 EditExerciseSheet(exercise: exerciseToEdit.exercise, muscleGroup: exerciseToEdit.muscleGroup)
             }
+        }
+        .fileExporter(
+            isPresented: $showExporter,
+            document: backupDocument,
+            contentType: .json,
+            defaultFilename: exportFilename
+        ) { result in
+            handleExportResult(result)
+        }
+        .fileImporter(
+            isPresented: $showImporter,
+            allowedContentTypes: [.json],
+            allowsMultipleSelection: false
+        ) { result in
+            handleImportSelection(result)
+        }
+        .confirmationDialog(
+            "Replace Local Data?",
+            isPresented: $showImportConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Import Backup", role: .destructive) {
+                importPendingBackup()
+            }
+            Button("Cancel", role: .cancel) {
+                pendingImportData = nil
+            }
+        } message: {
+            Text("This replaces all local workouts, settings, and master exercises with the selected backup.")
+        }
+        .alert(alertTitle, isPresented: $showAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(alertMessage)
         }
     }
 
@@ -207,5 +273,83 @@ struct SettingsView: View {
         .padding(.vertical, 8)
         .background(Color.gray.opacity(0.15))
         .cornerRadius(8)
+    }
+
+    private var exportFilename: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd-HHmm"
+        return "IronNotes-Backup-\(formatter.string(from: Date()))"
+    }
+
+    private func exportBackup() {
+        do {
+            backupDocument = try BackupManager.makeBackup(sessions: sessions, settings: settings)
+            showExporter = true
+        } catch {
+            showMessage(title: "Export Failed", message: error.localizedDescription)
+            HapticManager.error()
+        }
+    }
+
+    private func handleExportResult(_ result: Result<URL, Error>) {
+        switch result {
+        case .success:
+            showMessage(title: "Backup Exported", message: "Your IronNotes backup was saved.")
+            HapticManager.success()
+        case .failure(let error):
+            showMessage(title: "Export Failed", message: error.localizedDescription)
+            HapticManager.error()
+        }
+    }
+
+    private func handleImportSelection(_ result: Result<[URL], Error>) {
+        switch result {
+        case .success(let urls):
+            guard let url = urls.first else { return }
+            let didAccess = url.startAccessingSecurityScopedResource()
+            defer {
+                if didAccess {
+                    url.stopAccessingSecurityScopedResource()
+                }
+            }
+
+            do {
+                pendingImportData = try Data(contentsOf: url)
+                showImportConfirmation = true
+            } catch {
+                showMessage(title: "Import Failed", message: error.localizedDescription)
+                HapticManager.error()
+            }
+
+        case .failure(let error):
+            showMessage(title: "Import Failed", message: error.localizedDescription)
+            HapticManager.error()
+        }
+    }
+
+    private func importPendingBackup() {
+        guard let data = pendingImportData else { return }
+
+        do {
+            try BackupManager.importBackup(
+                data: data,
+                modelContext: modelContext,
+                existingSessions: sessions,
+                settings: settings
+            )
+            pendingImportData = nil
+            showMessage(title: "Backup Imported", message: "Your IronNotes data was restored.")
+            HapticManager.success()
+        } catch {
+            pendingImportData = nil
+            showMessage(title: "Import Failed", message: error.localizedDescription)
+            HapticManager.error()
+        }
+    }
+
+    private func showMessage(title: String, message: String) {
+        alertTitle = title
+        alertMessage = message
+        showAlert = true
     }
 }
