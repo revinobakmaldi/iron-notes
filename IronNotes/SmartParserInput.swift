@@ -11,7 +11,6 @@ struct SmartParserInput: View {
 
     @State private var weight: Double = 0
     @State private var reps: Int = 0
-    @State private var setCount: Int = 1
     @State private var isSingleArm: Bool = false
     @State private var showTextMode: Bool = false
     @State private var inputText = ""
@@ -357,11 +356,11 @@ struct SmartParserInput: View {
     private var logButton: some View {
         Button(action: {
             HapticManager.success()
-            onLog(weight, reps, setCount, isSingleArm)
+            onLog(weight, reps, 1, isSingleArm)
         }) {
             HStack {
                 Spacer()
-                Text(setCount > 1 ? "LOG \(setCount) SETS" : "LOG SET")
+                Text("LOG SET")
                     .font(.headline)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
@@ -391,7 +390,6 @@ struct SmartParserInput: View {
         guard let suggestedSet else {
             weight = 0
             reps = 0
-            setCount = 1
             isSingleArm = false
             return
         }
@@ -402,7 +400,6 @@ struct SmartParserInput: View {
     private func applySetToInputs(_ set: SetEntry) {
         weight = set.weight
         reps = set.reps
-        setCount = set.setCount
         isSingleArm = set.isSingleArm
     }
 
