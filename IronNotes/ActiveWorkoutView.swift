@@ -334,6 +334,9 @@ struct AddExerciseSheet: View {
         .sheet(isPresented: $showAddNewExercise) {
             NewExerciseSheet(muscleGroup: selectedMuscleGroup)
         }
+        .onAppear {
+            settings.ensureDefaultMasterExercises()
+        }
     }
 
     private func addExercise(name: String, muscleGroup: MuscleGroup) {

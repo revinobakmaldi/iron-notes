@@ -203,6 +203,9 @@ struct SettingsView: View {
         } message: {
             Text(alertMessage)
         }
+        .onAppear {
+            settings.ensureDefaultMasterExercises()
+        }
     }
 
     @ViewBuilder
