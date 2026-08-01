@@ -7,16 +7,24 @@ struct WorkoutTab: View {
     @State private var showNewWorkout = false
     @State private var sessionToDelete: WorkoutSession?
     @State private var showDeleteAlert = false
+    @State private var expandedMonthKeys: Set<String> = [Self.monthKey(for: Date())]
 
-    private var groupedSessions: [(key: String, sessions: [WorkoutSession])] {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM yyyy"
-
-        let grouped = Dictionary(grouping: sessions) { session -> String in
-            formatter.string(from: session.date)
+    private var groupedSessions: [WorkoutMonthGroup] {
+        let grouped = Dictionary(grouping: sessions) { session in
+            Self.monthKey(for: session.date)
         }
 
-        return grouped.map { (key: $0.key, sessions: $0.value) }
+        return grouped.compactMap { key, sessions -> WorkoutMonthGroup? in
+            guard let firstDate = sessions.first?.date else {
+                return nil
+            }
+
+            return WorkoutMonthGroup(
+                key: key,
+                title: Self.monthTitle(for: firstDate),
+                sessions: sessions.sorted { $0.date > $1.date }
+            )
+        }
             .sorted { first, second in
                 guard let d1 = first.sessions.first?.date, let d2 = second.sessions.first?.date else { return false }
                 return d1 > d2
@@ -67,19 +75,17 @@ struct WorkoutTab: View {
                         } else {
                             VStack(spacing: 24) {
                                 ForEach(groupedSessions, id: \.key) { group in
-                                    VStack(alignment: .leading, spacing: 12) {
-                                        Text(group.key)
-                                            .font(.title3)
-                                            .fontWeight(.semibold)
-                                            .foregroundColor(.ironInk)
-
-                                        ForEach(group.sessions) { session in
-                                            SessionCard(session: session) {
-                                                sessionToDelete = session
-                                                showDeleteAlert = true
-                                            }
+                                    WorkoutMonthSection(
+                                        group: group,
+                                        isExpanded: expandedMonthKeys.contains(group.key),
+                                        onToggle: {
+                                            toggleMonth(group.key)
+                                        },
+                                        onDelete: { session in
+                                            sessionToDelete = session
+                                            showDeleteAlert = true
                                         }
-                                    }
+                                    )
                                 }
                             }
                             .padding(.horizontal)
@@ -124,10 +130,91 @@ struct WorkoutTab: View {
         }
     }
 
+    private func toggleMonth(_ key: String) {
+        if expandedMonthKeys.contains(key) {
+            expandedMonthKeys.remove(key)
+        } else {
+            expandedMonthKeys.insert(key)
+        }
+        HapticManager.light()
+    }
+
     private func deleteSession(_ session: WorkoutSession) {
         modelContext.delete(session)
         sessionToDelete = nil
         HapticManager.success()
+    }
+
+    private static func monthKey(for date: Date) -> String {
+        let components = Calendar.current.dateComponents([.year, .month], from: date)
+        return "\(components.year ?? 0)-\(components.month ?? 0)"
+    }
+
+    private static func monthTitle(for date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        return formatter.string(from: date)
+    }
+}
+
+private struct WorkoutMonthGroup {
+    let key: String
+    let title: String
+    let sessions: [WorkoutSession]
+}
+
+private struct WorkoutMonthSection: View {
+    let group: WorkoutMonthGroup
+    let isExpanded: Bool
+    let onToggle: () -> Void
+    let onDelete: (WorkoutSession) -> Void
+
+    private var sessionCountText: String {
+        group.sessions.count == 1 ? "1 session" : "\(group.sessions.count) sessions"
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Button(action: onToggle) {
+                HStack(spacing: 10) {
+                    Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                        .font(.caption)
+                        .fontWeight(.bold)
+                        .foregroundColor(.ironMuted)
+                        .frame(width: 16, height: 16)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(group.title)
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.ironInk)
+
+                        Text(sessionCountText)
+                            .font(.caption)
+                            .foregroundColor(.ironMuted)
+                    }
+
+                    Spacer()
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
+                .background(Color.ironSurface)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.ironSurfaceMuted, lineWidth: 1)
+                )
+                .cornerRadius(12)
+            }
+            .buttonStyle(.plain)
+
+            if isExpanded {
+                ForEach(group.sessions) { session in
+                    SessionCard(session: session) {
+                        onDelete(session)
+                    }
+                }
+            }
+        }
     }
 }
 
