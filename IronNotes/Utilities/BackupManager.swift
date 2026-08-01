@@ -22,6 +22,7 @@ struct BackupWorkoutSession: Codable {
     var notes: String
     var duration: Int
     var isCompleted: Bool
+    var healthKitWorkoutID: UUID?
     var exercises: [BackupExerciseLog]
 }
 
@@ -141,6 +142,7 @@ enum BackupManager {
             notes: session.notes,
             duration: session.duration,
             isCompleted: session.isCompleted,
+            healthKitWorkoutID: session.healthKitWorkoutID,
             exercises: session.exercises
                 .sorted { $0.exerciseName < $1.exerciseName }
                 .map(backupExercise)
@@ -175,6 +177,7 @@ enum BackupManager {
         session.id = backup.id
         session.duration = backup.duration
         session.isCompleted = backup.isCompleted
+        session.healthKitWorkoutID = backup.healthKitWorkoutID
 
         session.exercises = backup.exercises.map { backupExercise in
             let exercise = makeExercise(from: backupExercise)

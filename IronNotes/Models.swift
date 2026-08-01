@@ -23,6 +23,7 @@ final class WorkoutSession {
     var notes: String
     var duration: Int
     var isCompleted: Bool
+    var healthKitWorkoutID: UUID?
     @Relationship(deleteRule: .cascade, inverse: \ExerciseLog.session)
     var exercises: [ExerciseLog]
 
@@ -32,6 +33,7 @@ final class WorkoutSession {
         self.notes = notes
         self.duration = 0
         self.isCompleted = false
+        self.healthKitWorkoutID = nil
         self.exercises = []
     }
 }

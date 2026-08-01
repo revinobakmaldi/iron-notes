@@ -19,6 +19,8 @@ struct SettingsView: View {
     @State private var alertTitle = ""
     @State private var alertMessage = ""
     @State private var showAlert = false
+    @State private var isSyncingHealth = false
+    @State private var healthSyncStatus: String?
 
     var body: some View {
         ZStack {
@@ -98,6 +100,34 @@ struct SettingsView: View {
                     Text("Importing a backup replaces local workouts, settings, and master exercises.")
                         .font(.caption)
                         .foregroundColor(.ironMuted)
+                }
+
+                    settingsSection("Apple Health") {
+                    Button(action: syncCompletedWorkoutsToHealth) {
+                        HStack {
+                            Label(
+                                isSyncingHealth ? "Syncing Workouts" : "Sync Completed Workouts",
+                                systemImage: "heart.fill"
+                            )
+                            Spacer()
+                            if isSyncingHealth {
+                                ProgressView()
+                            }
+                        }
+                    }
+                    .disabled(isSyncingHealth || !HealthSyncManager.shared.isAvailable)
+                    .foregroundColor(.ironPrimary)
+
+                    Text(healthSyncDescription)
+                        .font(.caption)
+                        .foregroundColor(.ironMuted)
+
+                    if let healthSyncStatus {
+                        Text(healthSyncStatus)
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(.ironSuccess)
+                    }
                 }
 
                     settingsSection("About") {
@@ -222,6 +252,19 @@ struct SettingsView: View {
         return "\(version) (\(build))"
     }
 
+    private var healthSyncDescription: String {
+        guard HealthSyncManager.shared.isAvailable else {
+            return "Apple Health is not available on this device."
+        }
+
+        let pendingCount = sessions.filter { $0.isCompleted && $0.duration > 0 && $0.healthKitWorkoutID == nil }.count
+        if pendingCount == 0 {
+            return "All completed workouts with a duration are already marked as synced."
+        }
+
+        return "\(pendingCount) completed workouts can be written as strength workouts."
+    }
+
     private func settingsSection<Content: View>(
         _ title: String,
         @ViewBuilder content: () -> Content
@@ -328,6 +371,27 @@ struct SettingsView: View {
         } catch {
             showMessage(title: "Export Failed", message: error.localizedDescription)
             HapticManager.error()
+        }
+    }
+
+    private func syncCompletedWorkoutsToHealth() {
+        isSyncingHealth = true
+        healthSyncStatus = nil
+
+        Task {
+            do {
+                let result = try await HealthSyncManager.shared.syncCompletedSessions(
+                    sessions,
+                    modelContext: modelContext
+                )
+                healthSyncStatus = "Synced \(result.syncedCount), skipped \(result.skippedCount)."
+                HapticManager.success()
+            } catch {
+                showMessage(title: "Health Sync Failed", message: error.localizedDescription)
+                HapticManager.error()
+            }
+
+            isSyncingHealth = false
         }
     }
 

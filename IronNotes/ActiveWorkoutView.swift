@@ -226,6 +226,10 @@ struct ActiveWorkoutView: View {
         
         session.isCompleted = true
 
+        Task {
+            try? await HealthSyncManager.shared.sync(session: session, modelContext: modelContext)
+        }
+
         HapticManager.success()
         showSummary = true
     }
