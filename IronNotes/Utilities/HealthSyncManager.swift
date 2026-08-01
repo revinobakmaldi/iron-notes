@@ -58,7 +58,8 @@ final class HealthSyncManager {
     func syncCompletedSessions(
         _ sessions: [WorkoutSession],
         settings: AppSettings,
-        modelContext: ModelContext
+        modelContext: ModelContext,
+        resyncExisting: Bool = false
     ) async throws -> HealthSyncResult {
         try await requestAuthorization()
 
@@ -66,9 +67,19 @@ final class HealthSyncManager {
         var skippedCount = 0
 
         for session in sessions.sorted(by: { $0.date < $1.date }) {
-            guard session.isCompleted, session.duration > 0, session.healthKitWorkoutID == nil else {
+            guard session.isCompleted, session.duration > 0 else {
                 skippedCount += 1
                 continue
+            }
+
+            guard session.healthKitWorkoutID == nil || resyncExisting else {
+                skippedCount += 1
+                continue
+            }
+
+            if resyncExisting {
+                try await deleteExistingHealthObjects(for: session)
+                session.healthKitWorkoutID = nil
             }
 
             if try await saveAuthorized(session: session, settings: settings, modelContext: modelContext) {
@@ -88,6 +99,7 @@ final class HealthSyncManager {
     ) async throws -> Bool {
         let endDate = session.date.addingTimeInterval(TimeInterval(session.duration))
         let estimatedCalories = estimatedCalories(for: session, bodyWeightKg: settings.bodyWeightKg)
+        let activeEnergyType = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned)
         let metadata: [String: Any] = [
             HKMetadataKeyExternalUUID: session.id.uuidString,
             HKMetadataKeyWorkoutBrandName: "IronNotes",
@@ -102,20 +114,78 @@ final class HealthSyncManager {
             HKQuantity(unit: .kilocalorie(), doubleValue: $0)
         }
 
-        let workout = HKWorkout(
-            activityType: .traditionalStrengthTraining,
-            start: session.date,
-            end: endDate,
-            duration: TimeInterval(session.duration),
-            totalEnergyBurned: activeEnergy,
-            totalDistance: nil,
-            metadata: metadata
+        let configuration = HKWorkoutConfiguration()
+        configuration.activityType = .traditionalStrengthTraining
+        configuration.locationType = .unknown
+
+        let builder = HKWorkoutBuilder(
+            healthStore: healthStore,
+            configuration: configuration,
+            device: nil
         )
 
-        try await healthStore.save(workout)
+        try await builder.beginCollection(at: session.date)
+        try await builder.addMetadata(metadata)
+
+        if let activeEnergy, let activeEnergyType {
+            let energySample = HKQuantitySample(
+                type: activeEnergyType,
+                quantity: activeEnergy,
+                start: session.date,
+                end: endDate,
+                metadata: metadata
+            )
+            try await builder.addSamples([energySample])
+        }
+
+        let workout = try await finishWorkout(builder)
         session.healthKitWorkoutID = workout.uuid
         try modelContext.save()
         return true
+    }
+
+    private func finishWorkout(_ builder: HKWorkoutBuilder) async throws -> HKWorkout {
+        try await withCheckedThrowingContinuation { continuation in
+            builder.finishWorkout { workout, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else if let workout {
+                    continuation.resume(returning: workout)
+                } else {
+                    continuation.resume(throwing: HealthSyncError.unavailable)
+                }
+            }
+        }
+    }
+
+    private func deleteExistingHealthObjects(for session: WorkoutSession) async throws {
+        if let workoutID = session.healthKitWorkoutID {
+            let workoutPredicate = HKQuery.predicateForObject(with: workoutID)
+            try await deleteObjects(of: HKObjectType.workoutType(), predicate: workoutPredicate)
+        }
+
+        if let activeEnergyType = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned) {
+            let energyPredicate = HKQuery.predicateForObjects(
+                withMetadataKey: "IronNotesWorkoutID",
+                operatorType: .equalTo,
+                value: session.id.uuidString
+            )
+            try await deleteObjects(of: activeEnergyType, predicate: energyPredicate)
+        }
+    }
+
+    private func deleteObjects(of objectType: HKObjectType, predicate: NSPredicate) async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            healthStore.deleteObjects(of: objectType, predicate: predicate) { success, _, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else if success {
+                    continuation.resume()
+                } else {
+                    continuation.resume(throwing: HealthSyncError.unavailable)
+                }
+            }
+        }
     }
 
     private func estimatedCalories(for session: WorkoutSession, bodyWeightKg: Double) -> Double? {

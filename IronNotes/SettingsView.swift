@@ -154,6 +154,21 @@ struct SettingsView: View {
                     .disabled(isSyncingHealth || !HealthSyncManager.shared.isAvailable)
                     .foregroundColor(.ironPrimary)
 
+                    Button(action: resyncCaloriesToHealth) {
+                        HStack {
+                            Label(
+                                isSyncingHealth ? "Resyncing Calories" : "Resync Calories",
+                                systemImage: "flame.fill"
+                            )
+                            Spacer()
+                            if isSyncingHealth {
+                                ProgressView()
+                            }
+                        }
+                    }
+                    .disabled(isSyncingHealth || !HealthSyncManager.shared.isAvailable || settings.bodyWeightKg <= 0)
+                    .foregroundColor(.ironAccent)
+
                     Text(healthSyncDescription)
                         .font(.caption)
                         .foregroundColor(.ironMuted)
@@ -477,6 +492,29 @@ struct SettingsView: View {
                 HapticManager.success()
             } catch {
                 showMessage(title: "Health Sync Failed", message: error.localizedDescription)
+                HapticManager.error()
+            }
+
+            isSyncingHealth = false
+        }
+    }
+
+    private func resyncCaloriesToHealth() {
+        isSyncingHealth = true
+        healthSyncStatus = nil
+
+        Task {
+            do {
+                let result = try await HealthSyncManager.shared.syncCompletedSessions(
+                    sessions,
+                    settings: settings,
+                    modelContext: modelContext,
+                    resyncExisting: true
+                )
+                healthSyncStatus = "Resynced \(result.syncedCount), skipped \(result.skippedCount)."
+                HapticManager.success()
+            } catch {
+                showMessage(title: "Health Resync Failed", message: error.localizedDescription)
                 HapticManager.error()
             }
 
