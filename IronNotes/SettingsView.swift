@@ -3,6 +3,11 @@ import SwiftData
 import UniformTypeIdentifiers
 
 struct SettingsView: View {
+    private enum ProfileField: Hashable {
+        case height
+        case bodyWeight
+    }
+
     @Environment(\.modelContext) private var modelContext
     @Environment(AppSettings.self) private var settings
     @Query(sort: \WorkoutSession.date, order: .reverse) private var sessions: [WorkoutSession]
@@ -21,6 +26,7 @@ struct SettingsView: View {
     @State private var showAlert = false
     @State private var isSyncingHealth = false
     @State private var healthSyncStatus: String?
+    @FocusState private var focusedProfileField: ProfileField?
 
     var body: some View {
         ZStack {
@@ -68,6 +74,7 @@ struct SettingsView: View {
                     settingsSection("Profile") {
                     profileNumberRow(
                         title: "Height",
+                        field: .height,
                         value: Binding(
                             get: { settings.heightCm },
                             set: {
@@ -81,6 +88,7 @@ struct SettingsView: View {
 
                     profileNumberRow(
                         title: "Body Weight",
+                        field: .bodyWeight,
                         value: Binding(
                             get: { settings.bodyWeightKg },
                             set: {
@@ -178,7 +186,12 @@ struct SettingsView: View {
                 }
                 .padding()
             }
+            .scrollDismissesKeyboard(.interactively)
             .background(Color.ironBackground)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                focusedProfileField = nil
+            }
         }
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
@@ -193,6 +206,14 @@ struct SettingsView: View {
                         .fontWeight(.bold)
                         .foregroundColor(.ironInk)
                 }
+            }
+
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") {
+                    focusedProfileField = nil
+                }
+                .foregroundColor(.ironPrimary)
             }
         }
         .sheet(isPresented: $showAddExercise) {
@@ -322,6 +343,7 @@ struct SettingsView: View {
 
     private func profileNumberRow(
         title: String,
+        field: ProfileField,
         value: Binding<Double>,
         unit: String,
         placeholder: String
@@ -338,6 +360,8 @@ struct SettingsView: View {
                 .font(.body)
                 .foregroundColor(.ironInk)
                 .frame(width: 80)
+                .focused($focusedProfileField, equals: field)
+                .submitLabel(.done)
 
             Text(unit)
                 .foregroundColor(.ironMuted)
@@ -346,6 +370,10 @@ struct SettingsView: View {
         .padding(.vertical, 10)
         .background(Color.ironMuted.opacity(0.12))
         .cornerRadius(10)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            focusedProfileField = field
+        }
     }
 
     @ViewBuilder
