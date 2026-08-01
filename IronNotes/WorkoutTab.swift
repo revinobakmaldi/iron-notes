@@ -145,7 +145,9 @@ struct SessionCard: View {
     ]
 
     private var totalSets: Int {
-        session.exercises.reduce(0) { $0 + $1.sets.count }
+        session.exercises.reduce(0) { total, exercise in
+            total + exercise.sets.reduce(0) { $0 + $1.setCount }
+        }
     }
 
     private var uniqueMuscleGroups: [MuscleGroup] {

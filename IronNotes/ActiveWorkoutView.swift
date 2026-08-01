@@ -166,7 +166,7 @@ struct ActiveWorkoutView: View {
         return session.exercises.first { $0.id == selectedID }
     }
 
-    private func handleLog(weight: Double, reps: Int, setCount: Int) {
+    private func handleLog(weight: Double, reps: Int, setCount: Int, isSingleArm: Bool) {
         guard let exercise = getSelectedExercise() else {
             HapticManager.error()
             return
@@ -181,7 +181,7 @@ struct ActiveWorkoutView: View {
             weight: weight,
             reps: reps,
             setCount: setCount,
-            isSingleArm: false
+            isSingleArm: isSingleArm
         )
 
         setEntry.exercise = exercise
@@ -272,7 +272,7 @@ struct AddExerciseSheet: View {
 
                                         if exercise.defaultWeight > 0 {
                                             HStack(spacing: 4) {
-                                                Text("\(Int(exercise.defaultWeight))kg")
+                                                Text("\(formatWeight(exercise.defaultWeight))\(settings.preferredUnit.rawValue)")
                                                     .font(.caption)
                                                     .foregroundColor(.secondary)
                                                 Text("× \(exercise.defaultReps)")
@@ -334,5 +334,12 @@ struct AddExerciseSheet: View {
 
         HapticManager.success()
         dismiss()
+    }
+
+    private func formatWeight(_ weight: Double) -> String {
+        if weight == weight.rounded() {
+            return "\(Int(weight))"
+        }
+        return String(format: "%.1f", weight)
     }
 }

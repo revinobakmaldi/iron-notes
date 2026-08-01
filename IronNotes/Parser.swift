@@ -35,7 +35,7 @@ struct WorkoutParser {
             inputWithoutSA = String(inputWithoutSA.dropFirst(2)).trimmingCharacters(in: .whitespaces)
         }
 
-        guard let parsedSet = parseRawInput(inputWithoutSA) else {
+        guard let parsedSet = parse(inputWithoutSA) else {
             return nil
         }
 

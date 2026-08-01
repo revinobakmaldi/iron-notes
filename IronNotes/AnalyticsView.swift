@@ -382,7 +382,7 @@ struct AnalyticsView: View {
 
         for session in last7DaysSessions {
             for exercise in session.exercises {
-                setsPerMuscle[exercise.muscleGroup, default: 0] += exercise.sets.count
+                setsPerMuscle[exercise.muscleGroup, default: 0] += exercise.sets.reduce(0) { $0 + $1.setCount }
             }
         }
 
@@ -555,7 +555,7 @@ struct AnalyticsView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 40)
             } else {
-                let unit = AppSettings.shared.preferredUnit.rawValue
+                let unit = settings.preferredUnit.rawValue
                 let sortedGroups = data.keys.sorted { $0.rawValue < $1.rawValue }
 
                 ForEach(sortedGroups, id: \.self) { muscleGroup in
@@ -866,7 +866,7 @@ struct AnalyticsView: View {
 
                             Spacer()
 
-                            Text("\(formatWeight(topSet.weight))\(AppSettings.shared.preferredUnit.rawValue) x \(topSet.reps)")
+                            Text("\(formatWeight(topSet.weight))\(settings.preferredUnit.rawValue) x \(topSet.reps)")
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
                                 .foregroundColor(muscleGroupColors[topSet.muscleGroup] ?? .blue)

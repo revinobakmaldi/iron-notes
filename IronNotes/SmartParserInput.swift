@@ -2,8 +2,9 @@ import SwiftUI
 
 struct SmartParserInput: View {
     let exercise: ExerciseLog?
-    var onLog: (Double, Int, Int) -> Void
+    var onLog: (Double, Int, Int, Bool) -> Void
     var onToggleTimer: () -> Void = {}
+    @Environment(AppSettings.self) private var settings
 
     @State private var weight: Double = 0
     @State private var reps: Int = 0
@@ -14,6 +15,10 @@ struct SmartParserInput: View {
 
     var lastSet: SetEntry? {
         exercise?.sets.sorted(by: { $0.timestamp > $1.timestamp }).first
+    }
+
+    private var unitLabel: String {
+        settings.preferredUnit.rawValue
     }
 
     var body: some View {
@@ -48,12 +53,12 @@ struct SmartParserInput: View {
 
     private var textModeInput: some View {
         VStack(spacing: 12) {
-            Text("Quick text mode: e.g., 100kg 10r")
+            Text("Quick text mode: e.g., 100\(unitLabel) 10r")
                 .font(.caption)
                 .foregroundColor(.gray)
 
             HStack(spacing: 12) {
-                TextField("100kg 10r", text: $inputText)
+                TextField("100\(unitLabel) 10r", text: $inputText)
                     .textFieldStyle(.plain)
                     .font(.system(size: 18))
                     .foregroundColor(.white)
@@ -64,7 +69,7 @@ struct SmartParserInput: View {
 
                 Button(action: {
                     if let parsed = WorkoutParser.parse(inputText) {
-                        onLog(parsed.weight, parsed.reps, 1)
+                        onLog(parsed.weight, parsed.reps, parsed.setCount, parsed.isSingleArm)
                         inputText = ""
                         showTextMode = false
                         HapticManager.success()
@@ -104,14 +109,14 @@ struct SmartParserInput: View {
 
                     Spacer()
 
-                    Text("\(Int(last.weight))kg x \(last.reps)")
+                    Text(lastSetSummary(last))
                         .font(.caption)
                         .foregroundColor(.gray)
 
                     Button(action: {
                         weight = last.weight
                         reps = last.reps
-                        setCount = exercise?.sets.count ?? 0 + 1
+                        setCount = last.setCount
                         isSingleArm = last.isSingleArm
                         HapticManager.light()
                     }) {
@@ -178,7 +183,7 @@ struct SmartParserInput: View {
                 }
                 .frame(minWidth: 36, minHeight: 36)
 
-                Text("kg")
+                Text(unitLabel)
                     .font(.headline)
                     .foregroundColor(.gray)
             }
@@ -231,7 +236,8 @@ struct SmartParserInput: View {
     }
 
     private var setNumberDisplay: some View {
-        let nextSetNumber = (exercise?.sets.count ?? 0) + 1
+        let completedSets = exercise?.sets.reduce(0) { $0 + $1.setCount } ?? 0
+        let nextSetNumber = completedSets + 1
         return HStack(spacing: 12) {
             Text("Set #\(nextSetNumber)")
                 .font(.headline)
@@ -263,11 +269,11 @@ struct SmartParserInput: View {
     private var logButton: some View {
         Button(action: {
             HapticManager.success()
-            onLog(weight, reps, setCount)
+            onLog(weight, reps, setCount, isSingleArm)
         }) {
             HStack {
                 Spacer()
-                Text("LOG SET")
+                Text(setCount > 1 ? "LOG \(setCount) SETS" : "LOG SET")
                     .font(.headline)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
@@ -277,6 +283,19 @@ struct SmartParserInput: View {
             .background(Color.blue)
             .cornerRadius(10)
         }
-        .disabled(exercise == nil)
+        .disabled(exercise == nil || reps <= 0)
+    }
+
+    private func lastSetSummary(_ set: SetEntry) -> String {
+        let setPrefix = set.setCount > 1 ? "\(set.setCount) sets of " : ""
+        let singleArmSuffix = set.isSingleArm ? " · single arm" : ""
+        return "\(setPrefix)\(formatWeight(set.weight))\(unitLabel) x \(set.reps)\(singleArmSuffix)"
+    }
+
+    private func formatWeight(_ weight: Double) -> String {
+        if weight == weight.rounded() {
+            return "\(Int(weight))"
+        }
+        return String(format: "%.1f", weight)
     }
 }
