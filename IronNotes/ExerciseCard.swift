@@ -93,6 +93,12 @@ struct ExerciseCard: View {
     private var setsTable: some View {
         VStack(spacing: 0) {
             HStack {
+                Text("Set")
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .frame(width: 50, alignment: .center)
+                    .foregroundColor(.gray)
+
                 Text("Weight")
                     .font(.caption)
                     .fontWeight(.bold)
@@ -105,12 +111,6 @@ struct ExerciseCard: View {
                     .frame(width: 80, alignment: .center)
                     .foregroundColor(.gray)
 
-                Text("Sets")
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .frame(width: 50, alignment: .center)
-                    .foregroundColor(.gray)
-
                 Spacer()
 
                 Text("")
@@ -119,26 +119,27 @@ struct ExerciseCard: View {
             .padding(.vertical, 8)
             .background(Color.gray.opacity(0.2))
 
-            ForEach(exercise.sets.sorted(by: { $0.timestamp < $1.timestamp })) { set in
+            ForEach(numberedSets, id: \.set.id) { item in
                 HStack {
-                    Text(setWeightLabel(set))
+                    Text(item.displayNumber)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .frame(width: 50, alignment: .center)
+                        .foregroundColor(.gray)
+
+                    Text(setWeightLabel(item.set))
                         .font(.subheadline)
                         .frame(width: 110, alignment: .center)
                         .foregroundColor(.white)
 
-                    Text("\(set.reps)")
+                    Text("\(item.set.reps)")
                         .font(.subheadline)
                         .frame(width: 80, alignment: .center)
                         .foregroundColor(.white)
 
-                    Text("\(set.setCount)")
-                        .font(.subheadline)
-                        .frame(width: 50, alignment: .center)
-                        .foregroundColor(.white)
-
                     Spacer()
 
-                    if set.isPR {
+                    if item.set.isPR {
                         Image(systemName: "star.fill")
                             .font(.system(size: 16))
                             .foregroundColor(.yellow)
@@ -149,7 +150,7 @@ struct ExerciseCard: View {
                     }
                 }
                 .padding(.vertical, 8)
-                .background(set.isPR ? Color.yellow.opacity(0.1) : Color.clear)
+                .background(item.set.isPR ? Color.yellow.opacity(0.1) : Color.clear)
             }
         }
         .cornerRadius(12)
@@ -157,6 +158,23 @@ struct ExerciseCard: View {
             RoundedRectangle(cornerRadius: 12)
                 .stroke(Color.gray.opacity(0.3), lineWidth: 1)
         )
+    }
+
+    private var numberedSets: [(displayNumber: String, set: SetEntry)] {
+        var nextSetNumber = 1
+
+        return exercise.sets
+            .sorted { $0.timestamp < $1.timestamp }
+            .map { set in
+                let startNumber = nextSetNumber
+                nextSetNumber += set.setCount
+
+                if set.setCount > 1 {
+                    return ("\(startNumber)-\(nextSetNumber - 1)", set)
+                }
+
+                return ("\(startNumber)", set)
+            }
     }
 
     private var previousSessionSummary: some View {
