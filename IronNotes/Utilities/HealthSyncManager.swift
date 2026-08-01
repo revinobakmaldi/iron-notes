@@ -9,11 +9,17 @@ struct HealthSyncResult {
 
 enum HealthSyncError: LocalizedError {
     case unavailable
+    case missingBodyWeight
+    case workoutNotReturned
 
     var errorDescription: String? {
         switch self {
         case .unavailable:
             return "Apple Health is not available on this device."
+        case .missingBodyWeight:
+            return "Add body weight in Settings before syncing calories."
+        case .workoutNotReturned:
+            return "Apple Health saved the workout, but did not return a workout record. Unlock your iPhone and try again."
         }
     }
 }
@@ -61,6 +67,10 @@ final class HealthSyncManager {
         modelContext: ModelContext,
         resyncExisting: Bool = false
     ) async throws -> HealthSyncResult {
+        if resyncExisting, settings.bodyWeightKg <= 0 {
+            throw HealthSyncError.missingBodyWeight
+        }
+
         try await requestAuthorization()
 
         var syncedCount = 0
@@ -138,6 +148,7 @@ final class HealthSyncManager {
             try await builder.addSamples([energySample])
         }
 
+        try await builder.endCollection(at: endDate)
         let workout = try await finishWorkout(builder)
         session.healthKitWorkoutID = workout.uuid
         try modelContext.save()
@@ -152,7 +163,7 @@ final class HealthSyncManager {
                 } else if let workout {
                     continuation.resume(returning: workout)
                 } else {
-                    continuation.resume(throwing: HealthSyncError.unavailable)
+                    continuation.resume(throwing: HealthSyncError.workoutNotReturned)
                 }
             }
         }
