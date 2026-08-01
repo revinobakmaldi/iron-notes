@@ -117,7 +117,7 @@ struct ActiveWorkoutView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                if selectedExerciseID != nil && !session.isCompleted {
+                if getSelectedExercise() != nil && !session.isCompleted {
                     Button(action: {
                         if let exercise = getSelectedExercise() {
                             deleteExercise(exercise)
@@ -154,6 +154,9 @@ struct ActiveWorkoutView: View {
                 dismiss()
             }
         }
+        .onChange(of: session.exercises.map(\.id)) { _, exerciseIDs in
+            selectedExerciseID = exerciseIDs.last
+        }
         .alert("Finish Workout", isPresented: $showFinishWorkout) {
             Button("Cancel", role: .cancel) { }
             Button("Finish", role: .destructive) {
@@ -166,9 +169,9 @@ struct ActiveWorkoutView: View {
 
     private func getSelectedExercise() -> ExerciseLog? {
         guard let selectedID = selectedExerciseID else {
-            return session.exercises.first
+            return session.exercises.last
         }
-        return session.exercises.first { $0.id == selectedID }
+        return session.exercises.first { $0.id == selectedID } ?? session.exercises.last
     }
 
     private func getPreviousSetsForSelectedExercise() -> [SetEntry] {
