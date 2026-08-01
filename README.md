@@ -30,6 +30,10 @@ A gym workout tracker for iOS built with SwiftUI and SwiftData. Log sets, track 
 - Organized by muscle group: Chest, Back, Legs, Shoulders, Arms, Core, Full Body
 - Add, edit, and remove custom exercises with default weight/reps
 
+**Backup & Restore**
+- Export workouts, settings, and custom exercises as a JSON backup
+- Import a backup file to restore IronNotes data on another device or after reinstalling
+
 ## Tech Stack
 
 - **SwiftUI** — Declarative UI
