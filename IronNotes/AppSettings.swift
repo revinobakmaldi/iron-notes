@@ -8,6 +8,8 @@ class AppSettings {
 
     var restTimerDuration: Int = 90
     var preferredUnit: WeightUnit = .kg
+    var heightCm: Double = 0
+    var bodyWeightKg: Double = 0
     var masterExercises: [String: [MasterExercise]] = [:]
 
     enum WeightUnit: String, CaseIterable {
@@ -30,6 +32,9 @@ class AppSettings {
             preferredUnit = unit
         }
 
+        heightCm = UserDefaults.standard.double(forKey: "heightCm")
+        bodyWeightKg = UserDefaults.standard.double(forKey: "bodyWeightKg")
+
         if let savedExercises = UserDefaults.standard.data(forKey: "masterExercises"),
            let decoded = try? JSONDecoder().decode([String: [MasterExercise]].self, from: savedExercises) {
             masterExercises = decoded
@@ -44,6 +49,8 @@ class AppSettings {
     func saveSettings() {
         UserDefaults.standard.set(restTimerDuration, forKey: "restTimerDuration")
         UserDefaults.standard.set(preferredUnit.rawValue, forKey: "preferredUnit")
+        UserDefaults.standard.set(heightCm, forKey: "heightCm")
+        UserDefaults.standard.set(bodyWeightKg, forKey: "bodyWeightKg")
 
         if let encoded = try? JSONEncoder().encode(masterExercises) {
             UserDefaults.standard.set(encoded, forKey: "masterExercises")

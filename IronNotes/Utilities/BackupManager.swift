@@ -13,6 +13,8 @@ struct IronNotesBackup: Codable {
 struct BackupSettings: Codable {
     var restTimerDuration: Int
     var preferredUnit: String
+    var heightCm: Double?
+    var bodyWeightKg: Double?
     var masterExercises: [String: [MasterExercise]]
 }
 
@@ -87,6 +89,8 @@ enum BackupManager {
             settings: BackupSettings(
                 restTimerDuration: settings.restTimerDuration,
                 preferredUnit: settings.preferredUnit.rawValue,
+                heightCm: settings.heightCm,
+                bodyWeightKg: settings.bodyWeightKg,
                 masterExercises: settings.masterExercises
             ),
             workouts: sessions
@@ -125,6 +129,8 @@ enum BackupManager {
 
         settings.restTimerDuration = backup.settings.restTimerDuration
         settings.preferredUnit = preferredUnit
+        settings.heightCm = backup.settings.heightCm ?? 0
+        settings.bodyWeightKg = backup.settings.bodyWeightKg ?? 0
         settings.masterExercises = backup.settings.masterExercises
         settings.saveSettings()
 

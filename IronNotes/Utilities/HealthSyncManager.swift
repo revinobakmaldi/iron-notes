@@ -35,22 +35,31 @@ final class HealthSyncManager {
             throw HealthSyncError.unavailable
         }
 
+        var shareTypes: Set<HKSampleType> = [HKObjectType.workoutType()]
+        if let activeEnergyType = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned) {
+            shareTypes.insert(activeEnergyType)
+        }
+
         try await healthStore.requestAuthorization(
-            toShare: [HKObjectType.workoutType()],
+            toShare: shareTypes,
             read: []
         )
     }
 
-    func sync(session: WorkoutSession, modelContext: ModelContext) async throws -> Bool {
+    func sync(session: WorkoutSession, settings: AppSettings, modelContext: ModelContext) async throws -> Bool {
         guard session.isCompleted, session.duration > 0, session.healthKitWorkoutID == nil else {
             return false
         }
 
         try await requestAuthorization()
-        return try await saveAuthorized(session: session, modelContext: modelContext)
+        return try await saveAuthorized(session: session, settings: settings, modelContext: modelContext)
     }
 
-    func syncCompletedSessions(_ sessions: [WorkoutSession], modelContext: ModelContext) async throws -> HealthSyncResult {
+    func syncCompletedSessions(
+        _ sessions: [WorkoutSession],
+        settings: AppSettings,
+        modelContext: ModelContext
+    ) async throws -> HealthSyncResult {
         try await requestAuthorization()
 
         var syncedCount = 0
@@ -62,7 +71,7 @@ final class HealthSyncManager {
                 continue
             }
 
-            if try await saveAuthorized(session: session, modelContext: modelContext) {
+            if try await saveAuthorized(session: session, settings: settings, modelContext: modelContext) {
                 syncedCount += 1
             } else {
                 skippedCount += 1
@@ -72,21 +81,33 @@ final class HealthSyncManager {
         return HealthSyncResult(syncedCount: syncedCount, skippedCount: skippedCount)
     }
 
-    private func saveAuthorized(session: WorkoutSession, modelContext: ModelContext) async throws -> Bool {
+    private func saveAuthorized(
+        session: WorkoutSession,
+        settings: AppSettings,
+        modelContext: ModelContext
+    ) async throws -> Bool {
         let endDate = session.date.addingTimeInterval(TimeInterval(session.duration))
+        let estimatedCalories = estimatedCalories(for: session, bodyWeightKg: settings.bodyWeightKg)
         let metadata: [String: Any] = [
             HKMetadataKeyExternalUUID: session.id.uuidString,
             HKMetadataKeyWorkoutBrandName: "IronNotes",
             "IronNotesWorkoutID": session.id.uuidString,
-            "IronNotesExerciseSummary": exerciseSummary(for: session)
+            "IronNotesExerciseSummary": exerciseSummary(for: session),
+            "IronNotesEstimatedCalories": estimatedCalories ?? 0,
+            "IronNotesBodyWeightKg": settings.bodyWeightKg,
+            "IronNotesHeightCm": settings.heightCm,
+            "IronNotesCalorieEstimateMethod": "5.0 MET strength training estimate"
         ]
+        let activeEnergy = estimatedCalories.map {
+            HKQuantity(unit: .kilocalorie(), doubleValue: $0)
+        }
 
         let workout = HKWorkout(
             activityType: .traditionalStrengthTraining,
             start: session.date,
             end: endDate,
             duration: TimeInterval(session.duration),
-            totalEnergyBurned: nil,
+            totalEnergyBurned: activeEnergy,
             totalDistance: nil,
             metadata: metadata
         )
@@ -95,6 +116,16 @@ final class HealthSyncManager {
         session.healthKitWorkoutID = workout.uuid
         try modelContext.save()
         return true
+    }
+
+    private func estimatedCalories(for session: WorkoutSession, bodyWeightKg: Double) -> Double? {
+        guard bodyWeightKg > 0, session.duration > 0 else {
+            return nil
+        }
+
+        let strengthTrainingMET = 5.0
+        let durationHours = Double(session.duration) / 3600
+        return (strengthTrainingMET * bodyWeightKg * durationHours).rounded()
     }
 
     private func exerciseSummary(for session: WorkoutSession) -> String {

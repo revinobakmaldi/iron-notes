@@ -65,6 +65,34 @@ struct SettingsView: View {
                         unitSelector
                     }
 
+                    settingsSection("Profile") {
+                    profileNumberRow(
+                        title: "Height",
+                        value: Binding(
+                            get: { settings.heightCm },
+                            set: {
+                                settings.heightCm = $0
+                                settings.saveSettings()
+                            }
+                        ),
+                        unit: "cm",
+                        placeholder: "175"
+                    )
+
+                    profileNumberRow(
+                        title: "Body Weight",
+                        value: Binding(
+                            get: { settings.bodyWeightKg },
+                            set: {
+                                settings.bodyWeightKg = $0
+                                settings.saveSettings()
+                            }
+                        ),
+                        unit: "kg",
+                        placeholder: "75"
+                    )
+                }
+
                     settingsSection("Master Exercises") {
                     HStack {
                         Picker("Muscle Group", selection: $selectedMuscleGroup) {
@@ -258,11 +286,15 @@ struct SettingsView: View {
         }
 
         let pendingCount = sessions.filter { $0.isCompleted && $0.duration > 0 && $0.healthKitWorkoutID == nil }.count
+        let calorieText = settings.bodyWeightKg > 0
+            ? "Estimated calories will be included."
+            : "Add body weight to include estimated calories."
+
         if pendingCount == 0 {
-            return "All completed workouts with a duration are already marked as synced."
+            return "All completed workouts with a duration are already marked as synced. \(calorieText)"
         }
 
-        return "\(pendingCount) completed workouts can be written as strength workouts."
+        return "\(pendingCount) completed workouts can be written as strength workouts. \(calorieText)"
     }
 
     private func settingsSection<Content: View>(
@@ -286,6 +318,34 @@ struct SettingsView: View {
                     .stroke(Color.ironSurfaceMuted, lineWidth: 1)
             )
         }
+    }
+
+    private func profileNumberRow(
+        title: String,
+        value: Binding<Double>,
+        unit: String,
+        placeholder: String
+    ) -> some View {
+        HStack(spacing: 12) {
+            Text(title)
+                .foregroundColor(.ironInk)
+
+            Spacer()
+
+            TextField(placeholder, value: value, format: .number.precision(.fractionLength(0...1)))
+                .keyboardType(.decimalPad)
+                .multilineTextAlignment(.trailing)
+                .font(.body)
+                .foregroundColor(.ironInk)
+                .frame(width: 80)
+
+            Text(unit)
+                .foregroundColor(.ironMuted)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(Color.ironMuted.opacity(0.12))
+        .cornerRadius(10)
     }
 
     @ViewBuilder
@@ -382,6 +442,7 @@ struct SettingsView: View {
             do {
                 let result = try await HealthSyncManager.shared.syncCompletedSessions(
                     sessions,
+                    settings: settings,
                     modelContext: modelContext
                 )
                 healthSyncStatus = "Synced \(result.syncedCount), skipped \(result.skippedCount)."
