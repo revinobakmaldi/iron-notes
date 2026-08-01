@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import UserNotifications
+import UIKit
 
 @main
 struct IronNotesApp: App {
@@ -20,7 +21,14 @@ struct IronNotesApp: App {
     }()
 
     init() {
+        configureThemeAppearance()
         requestNotificationPermission()
+    }
+
+    private func configureThemeAppearance() {
+        UISlider.appearance().thumbTintColor = UIColor(red: 0.90, green: 0.87, blue: 0.81, alpha: 1)
+        UISlider.appearance().minimumTrackTintColor = UIColor(red: 0.09, green: 0.08, blue: 0.07, alpha: 1)
+        UISlider.appearance().maximumTrackTintColor = UIColor(red: 0.78, green: 0.74, blue: 0.66, alpha: 1)
     }
 
     private func requestNotificationPermission() {

@@ -60,20 +60,8 @@ struct SettingsView: View {
                 }
 
                     settingsSection("Units") {
-                    Picker("Weight Unit", selection: Binding(
-                        get: { settings.preferredUnit },
-                        set: {
-                            settings.preferredUnit = $0
-                            settings.saveSettings()
-                        }
-                    )) {
-                        ForEach(AppSettings.WeightUnit.allCases, id: \.self) { unit in
-                            Text(unit.rawValue.uppercased()).tag(unit)
-                        }
+                        unitSelector
                     }
-                    .pickerStyle(.segmented)
-                    .foregroundColor(.ironInk)
-                }
 
                     settingsSection("Master Exercises") {
                     HStack {
@@ -194,6 +182,33 @@ struct SettingsView: View {
         .onAppear {
             settings.ensureDefaultMasterExercises()
         }
+    }
+
+    private var unitSelector: some View {
+        HStack(spacing: 6) {
+            ForEach(AppSettings.WeightUnit.allCases, id: \.self) { unit in
+                let isSelected = settings.preferredUnit == unit
+
+                Button(action: {
+                    settings.preferredUnit = unit
+                    settings.saveSettings()
+                    HapticManager.light()
+                }) {
+                    Text(unit.rawValue.uppercased())
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(isSelected ? .ironOnPrimary : .ironInk)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(isSelected ? Color.ironPrimary : Color.ironSurfaceMuted)
+                        .cornerRadius(10)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(4)
+        .background(Color.ironSurfaceMuted.opacity(0.65))
+        .cornerRadius(12)
     }
 
     private func settingsSection<Content: View>(
