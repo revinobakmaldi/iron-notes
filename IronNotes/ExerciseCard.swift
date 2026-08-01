@@ -5,6 +5,7 @@ struct ExerciseCard: View {
     let exercise: ExerciseLog
     var previousSets: [SetEntry] = []
     let isSelected: Bool
+    var loggerContent: AnyView?
     @Environment(\.modelContext) private var modelContext
     @Environment(AppSettings.self) private var settings
 
@@ -71,6 +72,13 @@ struct ExerciseCard: View {
 
                     previousSessionSummary
                 }
+            }
+
+            if let loggerContent {
+                Divider()
+                    .background(Color.gray.opacity(0.3))
+
+                loggerContent
             }
         }
         .padding(16)

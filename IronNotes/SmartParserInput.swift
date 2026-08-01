@@ -3,6 +3,8 @@ import SwiftUI
 struct SmartParserInput: View {
     let exercise: ExerciseLog?
     var previousSets: [SetEntry] = []
+    var showsHeader: Bool = true
+    var isEmbedded: Bool = false
     var onLog: (Double, Int, Int, Bool) -> Void
     var onToggleTimer: () -> Void = {}
     @Environment(AppSettings.self) private var settings
@@ -34,26 +36,37 @@ struct SmartParserInput: View {
         settings.preferredUnit.rawValue
     }
 
+    private var horizontalPadding: CGFloat {
+        isEmbedded ? 0 : 16
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                Text(exercise?.exerciseName ?? "Select Exercise")
-                    .font(.headline)
-                    .foregroundColor(.blue)
+            if showsHeader {
+                HStack {
+                    Text(exercise?.exerciseName ?? "Select Exercise")
+                        .font(.headline)
+                        .foregroundColor(.blue)
 
-                Spacer()
+                    Spacer()
 
-                Button(action: {
-                    HapticManager.light()
-                    showTextMode.toggle()
-                }) {
-                    Image(systemName: showTextMode ? "number" : "textformat")
-                        .foregroundColor(.gray)
+                    modeToggleButton
                 }
-                .frame(minWidth: 44, minHeight: 44)
+                .padding(.horizontal, horizontalPadding)
+                .padding(.top, 12)
+            } else {
+                HStack {
+                    Text(showTextMode ? "Text Logger" : "Quick Logger")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.gray)
+
+                    Spacer()
+
+                    modeToggleButton
+                }
+                .padding(.bottom, 8)
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 12)
 
             if showTextMode {
                 textModeInput
@@ -61,7 +74,7 @@ struct SmartParserInput: View {
                 quickModeInput
             }
         }
-        .background(Color.black)
+        .background(isEmbedded ? Color.clear : Color.black)
         .onAppear {
             applySuggestedSetIfNeeded()
         }
@@ -73,15 +86,28 @@ struct SmartParserInput: View {
         }
     }
 
+    private var modeToggleButton: some View {
+        Button(action: {
+            HapticManager.light()
+            showTextMode.toggle()
+        }) {
+            Image(systemName: showTextMode ? "number" : "textformat")
+                .foregroundColor(.gray)
+        }
+        .frame(minWidth: 44, minHeight: 44)
+    }
+
     private var textModeInput: some View {
         VStack(spacing: 12) {
             Text("Quick text mode: e.g., 100\(unitLabel) 10r")
                 .font(.caption)
                 .foregroundColor(.gray)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, horizontalPadding)
 
             if lastSet != nil || previousSessionLastSet != nil {
                 suggestionChips
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, horizontalPadding)
             }
 
             HStack(spacing: 12) {
@@ -121,7 +147,7 @@ struct SmartParserInput: View {
                         .foregroundColor(.gray)
                 }
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, horizontalPadding)
             .padding(.bottom, 12)
         }
     }
@@ -188,7 +214,7 @@ struct SmartParserInput: View {
                     }
                     .frame(minWidth: 44, minHeight: 44)
                 }
-                .padding(.horizontal, 16)
+                .padding(.horizontal, horizontalPadding)
                 .padding(.top, 4)
             }
 
@@ -202,11 +228,11 @@ struct SmartParserInput: View {
                     isSingleArmToggle
                 }
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, horizontalPadding)
             .padding(.bottom, 8)
 
             logButton
-                .padding(.horizontal, 16)
+                .padding(.horizontal, horizontalPadding)
                 .padding(.bottom, 12)
         }
     }

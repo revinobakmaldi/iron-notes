@@ -71,12 +71,25 @@ struct ActiveWorkoutView: View {
                                         exerciseName: exercise.exerciseName,
                                         context: modelContext
                                     )
-                                    let isSelected = selectedExerciseID == exercise.id
+                                    let selectedExercise = getSelectedExercise()
+                                    let isSelected = selectedExercise?.id == exercise.id
+                                    let loggerContent: AnyView? = isSelected && !session.isCompleted
+                                        ? AnyView(
+                                            SmartParserInput(
+                                                exercise: exercise,
+                                                previousSets: previousSets,
+                                                showsHeader: false,
+                                                isEmbedded: true,
+                                                onLog: handleLog
+                                            )
+                                        )
+                                        : nil
 
                                     ExerciseCard(
                                         exercise: exercise,
                                         previousSets: previousSets,
-                                        isSelected: isSelected
+                                        isSelected: isSelected,
+                                        loggerContent: loggerContent
                                     )
                                     .onTapGesture {
                                         if !session.isCompleted {
@@ -89,15 +102,6 @@ struct ActiveWorkoutView: View {
                             .padding(.horizontal)
                             .padding(.bottom, 20)
                         }
-                    }
-                }
-                .safeAreaInset(edge: .bottom) {
-                    if !session.isCompleted {
-                        SmartParserInput(
-                            exercise: getSelectedExercise(),
-                            previousSets: getPreviousSetsForSelectedExercise(),
-                            onLog: handleLog
-                        )
                     }
                 }
             }
