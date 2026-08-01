@@ -27,7 +27,7 @@ struct ContentView: View {
                 }
                 .tag(2)
         }
-        .accentColor(.blue)
-        .preferredColorScheme(.dark)
+        .accentColor(.ironPrimary)
+        .preferredColorScheme(.light)
     }
 }

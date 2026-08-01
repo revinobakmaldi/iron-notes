@@ -120,12 +120,12 @@ struct AnalyticsView: View {
     }
 
     let muscleGroupColors: [MuscleGroup: Color] = [
-        .CHEST: Color(red: 0.95, green: 0.45, blue: 0.35),
-        .BACK: Color(red: 0.35, green: 0.55, blue: 0.9),
-        .LEGS: Color(red: 0.35, green: 0.8, blue: 0.45),
-        .SHOULDERS: Color(red: 0.95, green: 0.65, blue: 0.25),
-        .ARMS: Color(red: 0.75, green: 0.4, blue: 0.8),
-        .CORE: Color(red: 0.35, green: 0.7, blue: 0.85)
+        .CHEST: Color(red: 0.73, green: 0.22, blue: 0.06),
+        .BACK: Color(red: 0.18, green: 0.27, blue: 0.31),
+        .LEGS: Color(red: 0.34, green: 0.39, blue: 0.20),
+        .SHOULDERS: Color(red: 0.66, green: 0.47, blue: 0.20),
+        .ARMS: Color(red: 0.36, green: 0.30, blue: 0.50),
+        .CORE: Color(red: 0.48, green: 0.34, blue: 0.23)
     ]
 
     // MARK: - Data Filtering
@@ -153,7 +153,7 @@ struct AnalyticsView: View {
                 Text(contextualCTA)
                     .font(.title2)
                     .fontWeight(.semibold)
-                    .foregroundColor(.white.opacity(0.85))
+                    .foregroundColor(.ironInk.opacity(0.85))
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.horizontal)
 
@@ -175,7 +175,7 @@ struct AnalyticsView: View {
             }
             .padding(.top)
         }
-        .background(Color.black)
+        .background(Color.ironBackground)
         .navigationTitle("IronNotes")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -183,11 +183,11 @@ struct AnalyticsView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "figure.strengthtraining.traditional")
                         .font(.headline)
-                        .foregroundColor(.blue)
+                        .foregroundColor(.ironPrimary)
                     Text("IronNotes")
                         .font(.headline)
                         .fontWeight(.bold)
-                        .foregroundColor(.white)
+                        .foregroundColor(.ironInk)
                 }
             }
         }
@@ -203,22 +203,22 @@ struct AnalyticsView: View {
             HStack(spacing: 16) {
                 Label("\(workoutsThisWeek) \(workoutsThisWeek == 1 ? "workout" : "workouts") this week", systemImage: "calendar")
                     .font(.subheadline)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.ironMuted)
 
                 Spacer()
 
                 if sessions.isEmpty {
                     Text("Ready to start?")
                         .font(.subheadline)
-                        .foregroundColor(.blue)
+                        .foregroundColor(.ironPrimary)
                 } else if daysSinceLastWorkout == 0 {
                     Text("Last workout: Today!")
                         .font(.subheadline)
-                        .foregroundColor(.green)
+                        .foregroundColor(.ironSuccess)
                 } else if daysSinceLastWorkout == 1 {
                     Text("Last workout: Yesterday")
                         .font(.subheadline)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.ironMuted)
                 } else {
                     Text("Last workout: \(daysSinceLastWorkout) days ago")
                         .font(.subheadline)
@@ -243,11 +243,11 @@ struct AnalyticsView: View {
                         Spacer()
                         Text(activeSession.exercises.count > 0 ? "\(activeSession.exercises.count) exercises" : "New")
                             .font(.subheadline)
-                            .foregroundColor(.white.opacity(0.7))
+                            .foregroundColor(.ironOnPrimary.opacity(0.7))
                     }
-                    .foregroundColor(.white)
+                    .foregroundColor(.ironOnPrimary)
                     .padding()
-                    .background(Color.blue)
+                    .background(Color.ironPrimary)
                     .cornerRadius(16)
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -266,9 +266,9 @@ struct AnalyticsView: View {
                         Image(systemName: "chevron.right")
                             .font(.headline)
                     }
-                    .foregroundColor(.white)
+                    .foregroundColor(.ironOnPrimary)
                     .padding()
-                    .background(Color.blue)
+                    .background(Color.ironPrimary)
                     .cornerRadius(16)
                 }
                 .padding(.horizontal)
@@ -282,14 +282,14 @@ struct AnalyticsView: View {
         VStack(spacing: 20) {
             Image(systemName: "chart.line.uptrend.xyaxis")
                 .font(.system(size: 80))
-                .foregroundColor(.gray)
+                .foregroundColor(.ironMuted)
             Text("No Data Yet")
                 .font(.title2)
                 .fontWeight(.bold)
-                .foregroundColor(.white)
+                .foregroundColor(.ironInk)
             Text("Complete workouts to see your progress")
                 .font(.subheadline)
-                .foregroundColor(.gray)
+                .foregroundColor(.ironMuted)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
         }
@@ -322,7 +322,7 @@ struct AnalyticsView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Weekly Activity")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(.ironInk)
 
             HStack(spacing: 0) {
                 ForEach(last7CalendarDays, id: \.self) { day in
@@ -331,27 +331,27 @@ struct AnalyticsView: View {
                     VStack(spacing: 8) {
                         Text(day.formatted(.dateTime.weekday(.abbreviated)).prefix(3))
                             .font(.caption2)
-                            .foregroundColor(.gray)
+                            .foregroundColor(.ironMuted)
 
                         ZStack {
                             Circle()
-                                .fill(hasWorkout ? Color.blue : Color.gray.opacity(0.15))
+                                .fill(hasWorkout ? Color.ironPrimary : Color.ironMuted.opacity(0.15))
                                 .frame(width: 36, height: 36)
 
                             if hasWorkout {
                                 Image(systemName: "checkmark")
                                     .font(.caption)
                                     .fontWeight(.bold)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.ironOnPrimary)
                             } else {
                                 Text(day.formatted(.dateTime.day()))
                                     .font(.caption)
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(.ironMuted)
                             }
                         }
                         .overlay(
                             Circle()
-                                .strokeBorder(isToday ? Color.white.opacity(0.5) : Color.clear, lineWidth: 2)
+                                .strokeBorder(isToday ? Color.ironInk.opacity(0.5) : Color.clear, lineWidth: 2)
                                 .frame(width: 36, height: 36)
                         )
                     }
@@ -361,13 +361,13 @@ struct AnalyticsView: View {
 
             Text("\(gymDaysCount) of 7 days")
                 .font(.subheadline)
-                .foregroundColor(.gray)
+                .foregroundColor(.ironMuted)
                 .frame(maxWidth: .infinity, alignment: .center)
         }
         .padding(20)
         .background(
             LinearGradient(
-                colors: [Color.gray.opacity(0.08), Color.gray.opacity(0.02)],
+                colors: [Color.ironMuted.opacity(0.08), Color.ironMuted.opacity(0.02)],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -395,12 +395,12 @@ struct AnalyticsView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Weekly Sets by Muscle Group")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(.ironInk)
 
             if weeklySetsByMuscle.isEmpty {
                 Text("No sets recorded this week")
                     .font(.subheadline)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.ironMuted)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 40)
             } else {
@@ -411,7 +411,7 @@ struct AnalyticsView: View {
                         HStack(spacing: 12) {
                             Text(item.muscleGroup.rawValue)
                                 .font(.caption)
-                                .foregroundColor(.gray)
+                                .foregroundColor(.ironMuted)
                                 .frame(width: 70, alignment: .trailing)
 
                             GeometryReader { geo in
@@ -423,7 +423,7 @@ struct AnalyticsView: View {
                                         Text("\(item.sets)")
                                             .font(.caption)
                                             .fontWeight(.semibold)
-                                            .foregroundColor(.white)
+                                            .foregroundColor(.ironInk)
                                             .padding(.horizontal, 8),
                                         alignment: .trailing
                                     )
@@ -437,7 +437,7 @@ struct AnalyticsView: View {
         .padding(20)
         .background(
             LinearGradient(
-                colors: [Color.gray.opacity(0.08), Color.gray.opacity(0.02)],
+                colors: [Color.ironMuted.opacity(0.08), Color.ironMuted.opacity(0.02)],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -545,13 +545,13 @@ struct AnalyticsView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Strength Progress")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(.ironInk)
 
             let data = exerciseProgressData
             if data.isEmpty {
                 Text("No exercises recorded this week")
                     .font(.subheadline)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.ironMuted)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 40)
             } else {
@@ -575,7 +575,7 @@ struct AnalyticsView: View {
                                 HStack {
                                     Text(exercise.exerciseName)
                                         .font(.subheadline)
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.ironInk)
                                         .lineLimit(1)
 
                                     Spacer()
@@ -593,7 +593,7 @@ struct AnalyticsView: View {
         .padding(20)
         .background(
             LinearGradient(
-                colors: [Color.gray.opacity(0.08), Color.gray.opacity(0.02)],
+                colors: [Color.ironMuted.opacity(0.08), Color.ironMuted.opacity(0.02)],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -609,45 +609,45 @@ struct AnalyticsView: View {
         case .new:
             Text("\(thisWeek) \(unit)")
                 .font(.subheadline)
-                .foregroundColor(.gray)
+                .foregroundColor(.ironMuted)
             Text("NEW")
                 .font(.caption2)
                 .fontWeight(.bold)
-                .foregroundColor(.blue)
+                .foregroundColor(.ironPrimary)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
-                .background(Color.blue.opacity(0.2))
+                .background(Color.ironPrimary.opacity(0.2))
                 .cornerRadius(4)
 
         case .improved:
             let prior = formatWeight(exercise.priorBest ?? 0)
             Text("\(prior) \u{2192} \(thisWeek) \(unit)")
                 .font(.subheadline)
-                .foregroundColor(.white)
+                .foregroundColor(.ironInk)
             Image(systemName: "arrow.up")
                 .font(.caption)
                 .fontWeight(.bold)
-                .foregroundColor(.green)
+                .foregroundColor(.ironSuccess)
 
         case .regressed:
             let prior = formatWeight(exercise.priorBest ?? 0)
             Text("\(prior) \u{2192} \(thisWeek) \(unit)")
                 .font(.subheadline)
-                .foregroundColor(.white)
+                .foregroundColor(.ironInk)
             Image(systemName: "arrow.down")
                 .font(.caption)
                 .fontWeight(.bold)
-                .foregroundColor(.red)
+                .foregroundColor(.ironDanger)
 
         case .same:
             let prior = formatWeight(exercise.priorBest ?? 0)
             Text("\(prior) \u{2192} \(thisWeek) \(unit)")
                 .font(.subheadline)
-                .foregroundColor(.white)
+                .foregroundColor(.ironInk)
             Image(systemName: "minus")
                 .font(.caption)
                 .fontWeight(.bold)
-                .foregroundColor(.gray)
+                .foregroundColor(.ironMuted)
         }
     }
 
@@ -681,25 +681,25 @@ struct AnalyticsView: View {
                 HStack(spacing: 12) {
                     Image(systemName: "bed.double.fill")
                         .font(.title3)
-                        .foregroundColor(.orange)
+                        .foregroundColor(.ironAccent)
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text("\(consecutiveRestDays) days rest")
                             .font(.subheadline)
                             .fontWeight(.semibold)
-                            .foregroundColor(.white)
+                            .foregroundColor(.ironInk)
                         Text("Ready to get back at it?")
                             .font(.caption)
-                            .foregroundColor(.gray)
+                            .foregroundColor(.ironMuted)
                     }
 
                     Spacer()
 
                     Image(systemName: "flame.fill")
-                        .foregroundColor(.orange.opacity(0.6))
+                        .foregroundColor(.ironAccent.opacity(0.6))
                 }
                 .padding(16)
-                .background(Color.orange.opacity(0.1))
+                .background(Color.ironAccent.opacity(0.1))
                 .cornerRadius(12)
             }
         }
@@ -732,57 +732,57 @@ struct AnalyticsView: View {
                     VStack(spacing: 4) {
                         Image(systemName: "clock.fill")
                             .font(.title3)
-                            .foregroundColor(.green)
+                            .foregroundColor(.ironSuccess)
                         Text(formatDuration(weeklyTotalDuration))
                             .font(.headline)
                             .fontWeight(.bold)
-                            .foregroundColor(.white)
+                            .foregroundColor(.ironInk)
                         Text("Total")
                             .font(.caption2)
-                            .foregroundColor(.gray)
+                            .foregroundColor(.ironMuted)
                     }
                     .frame(maxWidth: .infinity)
 
                     Divider()
                         .frame(height: 40)
-                        .background(Color.gray.opacity(0.3))
+                        .background(Color.ironMuted.opacity(0.3))
 
                     VStack(spacing: 4) {
                         Image(systemName: "clock.arrow.circlepath")
                             .font(.title3)
-                            .foregroundColor(.blue)
+                            .foregroundColor(.ironPrimary)
                         Text(formatDuration(weeklyAvgDuration))
                             .font(.headline)
                             .fontWeight(.bold)
-                            .foregroundColor(.white)
+                            .foregroundColor(.ironInk)
                         Text("Avg / Session")
                             .font(.caption2)
-                            .foregroundColor(.gray)
+                            .foregroundColor(.ironMuted)
                     }
                     .frame(maxWidth: .infinity)
 
                     Divider()
                         .frame(height: 40)
-                        .background(Color.gray.opacity(0.3))
+                        .background(Color.ironMuted.opacity(0.3))
 
                     VStack(spacing: 4) {
                         Image(systemName: "figure.strengthtraining.traditional")
                             .font(.title3)
-                            .foregroundColor(.purple)
+                            .foregroundColor(.ironSecondaryAccent)
                         Text("\(last7DaysSessions.reduce(0) { $0 + $1.exercises.count })")
                             .font(.headline)
                             .fontWeight(.bold)
-                            .foregroundColor(.white)
+                            .foregroundColor(.ironInk)
                         Text("Exercises")
                             .font(.caption2)
-                            .foregroundColor(.gray)
+                            .foregroundColor(.ironMuted)
                     }
                     .frame(maxWidth: .infinity)
                 }
                 .padding(16)
                 .background(
                     LinearGradient(
-                        colors: [Color.gray.opacity(0.08), Color.gray.opacity(0.02)],
+                        colors: [Color.ironMuted.opacity(0.08), Color.ironMuted.opacity(0.02)],
                         startPoint: .top,
                         endPoint: .bottom
                     )
@@ -846,22 +846,22 @@ struct AnalyticsView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Top Sets This Week")
                         .font(.headline)
-                        .foregroundColor(.white)
+                        .foregroundColor(.ironInk)
 
                     ForEach(highlights) { topSet in
                         HStack(spacing: 12) {
                             Image(systemName: "trophy.fill")
-                                .foregroundColor(.yellow)
+                                .foregroundColor(.ironPR)
                                 .font(.subheadline)
 
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(topSet.exerciseName)
                                     .font(.subheadline)
                                     .fontWeight(.medium)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.ironInk)
                                 Text(topSet.date.formatted(.dateTime.weekday(.wide)))
                                     .font(.caption)
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(.ironMuted)
                             }
 
                             Spacer()
@@ -872,14 +872,14 @@ struct AnalyticsView: View {
                                 .foregroundColor(muscleGroupColors[topSet.muscleGroup] ?? .blue)
                         }
                         .padding(12)
-                        .background(Color.yellow.opacity(0.05))
+                        .background(Color.ironPR.opacity(0.05))
                         .cornerRadius(10)
                     }
                 }
                 .padding(20)
                 .background(
                     LinearGradient(
-                        colors: [Color.gray.opacity(0.08), Color.gray.opacity(0.02)],
+                        colors: [Color.ironMuted.opacity(0.08), Color.ironMuted.opacity(0.02)],
                         startPoint: .top,
                         endPoint: .bottom
                     )
@@ -902,29 +902,29 @@ struct AnalyticsView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Training Gaps")
                         .font(.headline)
-                        .foregroundColor(.white)
+                        .foregroundColor(.ironInk)
 
                     ForEach(untrainedMuscleGroups, id: \.self) { muscleGroup in
                         HStack(spacing: 12) {
                             Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundColor(.orange)
+                                .foregroundColor(.ironAccent)
                                 .font(.subheadline)
 
                             Text("You haven't trained \(muscleGroup.rawValue) this week")
                                 .font(.subheadline)
-                                .foregroundColor(.gray)
+                                .foregroundColor(.ironMuted)
 
                             Spacer()
                         }
                         .padding(12)
-                        .background(Color.orange.opacity(0.08))
+                        .background(Color.ironAccent.opacity(0.08))
                         .cornerRadius(10)
                     }
                 }
                 .padding(20)
                 .background(
                     LinearGradient(
-                        colors: [Color.gray.opacity(0.08), Color.gray.opacity(0.02)],
+                        colors: [Color.ironMuted.opacity(0.08), Color.ironMuted.opacity(0.02)],
                         startPoint: .top,
                         endPoint: .bottom
                     )
@@ -954,12 +954,12 @@ struct StatCard: View {
 
             Text(value)
                 .font(.system(size: 32, weight: .bold, design: .rounded))
-                .foregroundColor(.white)
+                .foregroundColor(.ironInk)
                 .frame(maxWidth: .infinity, alignment: .center)
 
             Text(label)
                 .font(.caption)
-                .foregroundColor(.gray)
+                .foregroundColor(.ironMuted)
                 .frame(maxWidth: .infinity, alignment: .center)
         }
         .padding()

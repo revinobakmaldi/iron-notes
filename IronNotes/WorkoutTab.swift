@@ -26,7 +26,7 @@ struct WorkoutTab: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color.black.ignoresSafeArea()
+                Color.ironBackground.ignoresSafeArea()
 
                 ScrollView {
                     VStack(spacing: 20) {
@@ -40,9 +40,9 @@ struct WorkoutTab: View {
                                 Image(systemName: "chevron.right")
                                     .font(.headline)
                             }
-                            .foregroundColor(.white)
+                            .foregroundColor(.ironOnPrimary)
                             .padding()
-                            .background(Color.blue)
+                            .background(Color.ironPrimary)
                             .cornerRadius(16)
                         }
                         .padding(.horizontal)
@@ -51,14 +51,14 @@ struct WorkoutTab: View {
                             VStack(spacing: 20) {
                                 Image(systemName: "figure.strengthtraining.traditional")
                                     .font(.system(size: 80))
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(.ironMuted)
                                 Text("No Workouts Yet")
                                     .font(.title2)
                                     .fontWeight(.bold)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.ironInk)
                                 Text("Start your first workout by tapping the button above")
                                     .font(.subheadline)
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(.ironMuted)
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal, 40)
                             }
@@ -71,7 +71,7 @@ struct WorkoutTab: View {
                                         Text(group.key)
                                             .font(.title3)
                                             .fontWeight(.semibold)
-                                            .foregroundColor(.white)
+                                            .foregroundColor(.ironInk)
 
                                         ForEach(group.sessions) { session in
                                             SessionCard(session: session) {
@@ -96,16 +96,16 @@ struct WorkoutTab: View {
                     HStack(spacing: 6) {
                         Image(systemName: "figure.strengthtraining.traditional")
                             .font(.headline)
-                            .foregroundColor(.blue)
+                            .foregroundColor(.ironPrimary)
                         Text("IronNotes")
                             .font(.headline)
                             .fontWeight(.bold)
-                            .foregroundColor(.white)
+                            .foregroundColor(.ironInk)
                     }
                 }
             }
-            .background(Color.black)
-            .preferredColorScheme(.dark)
+            .background(Color.ironBackground)
+            .preferredColorScheme(.light)
         }
         .alert("Delete Workout", isPresented: $showDeleteAlert) {
             Button("Cancel", role: .cancel) {
@@ -136,12 +136,12 @@ struct SessionCard: View {
     let onDelete: () -> Void
 
     private let muscleGroupColors: [MuscleGroup: Color] = [
-        .CHEST: Color(red: 0.95, green: 0.45, blue: 0.35),
-        .BACK: Color(red: 0.35, green: 0.55, blue: 0.9),
-        .LEGS: Color(red: 0.35, green: 0.8, blue: 0.45),
-        .SHOULDERS: Color(red: 0.95, green: 0.65, blue: 0.25),
-        .ARMS: Color(red: 0.75, green: 0.4, blue: 0.8),
-        .CORE: Color(red: 0.35, green: 0.7, blue: 0.85)
+        .CHEST: Color(red: 0.73, green: 0.22, blue: 0.06),
+        .BACK: Color(red: 0.18, green: 0.27, blue: 0.31),
+        .LEGS: Color(red: 0.34, green: 0.39, blue: 0.20),
+        .SHOULDERS: Color(red: 0.66, green: 0.47, blue: 0.20),
+        .ARMS: Color(red: 0.36, green: 0.30, blue: 0.50),
+        .CORE: Color(red: 0.48, green: 0.34, blue: 0.23)
     ]
 
     private var totalSets: Int {
@@ -174,31 +174,31 @@ struct SessionCard: View {
                 HStack {
                     Text(session.date, format: .dateTime.month(.abbreviated).day().year())
                         .font(.headline)
-                        .foregroundColor(.white)
+                        .foregroundColor(.ironInk)
 
                     Spacer()
 
                     Text(session.date, format: .dateTime.hour().minute())
                         .font(.subheadline)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.ironMuted)
 
                     if session.isCompleted {
                         Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
+                            .foregroundColor(.ironSuccess)
                     }
                 }
 
                 HStack(spacing: 4) {
                     Text("\(session.exercises.count) exercises")
-                    Text("·").foregroundColor(.gray.opacity(0.6))
+                    Text("·").foregroundColor(.ironMuted.opacity(0.6))
                     Text("\(totalSets) sets")
                     if session.duration > 0 {
-                        Text("·").foregroundColor(.gray.opacity(0.6))
+                        Text("·").foregroundColor(.ironMuted.opacity(0.6))
                         Text(formattedDuration)
                     }
                 }
                 .font(.subheadline)
-                .foregroundColor(.gray)
+                .foregroundColor(.ironMuted)
 
                 if !uniqueMuscleGroups.isEmpty {
                     HStack(spacing: 6) {
@@ -224,20 +224,20 @@ struct SessionCard: View {
                                     .frame(width: 6, height: 6)
                                 Text(exercise.exerciseName)
                                     .font(.caption)
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(.ironMuted)
                             }
                         }
 
                         if session.exercises.count > 3 {
                             Text("+ \(session.exercises.count - 3) more")
                                 .font(.caption)
-                                .foregroundColor(.gray.opacity(0.6))
+                                .foregroundColor(.ironMuted.opacity(0.6))
                         }
                     }
                 }
             }
             .padding()
-            .background(Color.gray.opacity(0.1))
+            .background(Color.ironMuted.opacity(0.1))
             .cornerRadius(12)
             .onLongPressGesture {
                 HapticManager.medium()
@@ -262,21 +262,21 @@ struct NewWorkoutSheet: View {
                     Button("Start Fresh") {
                         startWorkout(cloneLast: false, customDate: nil)
                     }
-                    .foregroundColor(.blue)
+                    .foregroundColor(.ironPrimary)
 
                     Button("Clone Last Workout") {
                         startWorkout(cloneLast: true, customDate: nil)
                     }
-                    .foregroundColor(.blue)
+                    .foregroundColor(.ironPrimary)
                     
                     Button("Backdate Session") {
                         showDatePicker = true
                     }
-                    .foregroundColor(.orange)
+                    .foregroundColor(.ironAccent)
                 }
             }
             .scrollContentBackground(.hidden)
-            .background(Color.black)
+            .background(Color.ironBackground)
             .navigationTitle("New Workout")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -352,7 +352,7 @@ struct DatePickerSheet: View {
                     Text("START")
                         .font(.caption)
                         .fontWeight(.bold)
-                        .foregroundColor(.blue)
+                        .foregroundColor(.ironPrimary)
                     
                     DatePicker(
                         "Start",
@@ -362,7 +362,7 @@ struct DatePickerSheet: View {
                     .datePickerStyle(.compact)
                     .colorScheme(.dark)
                     .padding()
-                    .background(Color.gray.opacity(0.2))
+                    .background(Color.ironMuted.opacity(0.2))
                     .cornerRadius(12)
                 }
                 .padding(.horizontal)
@@ -372,7 +372,7 @@ struct DatePickerSheet: View {
                     Text("END")
                         .font(.caption)
                         .fontWeight(.bold)
-                        .foregroundColor(.orange)
+                        .foregroundColor(.ironAccent)
                     
                     DatePicker(
                         "End",
@@ -383,7 +383,7 @@ struct DatePickerSheet: View {
                     .datePickerStyle(.compact)
                     .colorScheme(.dark)
                     .padding()
-                    .background(Color.gray.opacity(0.2))
+                    .background(Color.ironMuted.opacity(0.2))
                     .cornerRadius(12)
                 }
                 .padding(.horizontal)
@@ -391,17 +391,17 @@ struct DatePickerSheet: View {
                 // Duration display
                 HStack {
                     Text("Duration:")
-                        .foregroundColor(.gray)
+                        .foregroundColor(.ironMuted)
                     Text(formattedDuration)
                         .font(.headline)
-                        .foregroundColor(.green)
+                        .foregroundColor(.ironSuccess)
                 }
                 .padding(.top, 10)
                 
                 Spacer()
             }
             .padding(.top, 20)
-            .background(Color.black.ignoresSafeArea())
+            .background(Color.ironBackground.ignoresSafeArea())
             .navigationTitle("Backdate Session")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -409,7 +409,7 @@ struct DatePickerSheet: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundColor(.gray)
+                    .foregroundColor(.ironMuted)
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Confirm") {
@@ -417,11 +417,11 @@ struct DatePickerSheet: View {
                         onConfirm(selectedDate, duration)
                         dismiss()
                     }
-                    .foregroundColor(.orange)
+                    .foregroundColor(.ironAccent)
                     .fontWeight(.bold)
                 }
             }
-            .preferredColorScheme(.dark)
+            .preferredColorScheme(.light)
         }
     }
 }

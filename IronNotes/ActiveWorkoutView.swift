@@ -16,7 +16,7 @@ struct ActiveWorkoutView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color.ironBackground.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 ScrollView {
@@ -25,7 +25,7 @@ struct ActiveWorkoutView: View {
                             Text(session.date, format: .dateTime.month().day().year())
                                 .font(.title2)
                                 .fontWeight(.bold)
-                                .foregroundColor(.white)
+                                .foregroundColor(.ironInk)
 
                             Spacer()
 
@@ -35,10 +35,10 @@ struct ActiveWorkoutView: View {
                                 }) {
                                     Text("Finish")
                                         .font(.headline)
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.ironOnPrimary)
                                         .padding(.horizontal, 20)
                                         .padding(.vertical, 10)
-                                        .background(Color.blue)
+                                        .background(Color.ironPrimary)
                                         .cornerRadius(10)
                                 }
                                 .frame(minWidth: 44, minHeight: 44)
@@ -51,14 +51,14 @@ struct ActiveWorkoutView: View {
                             VStack(spacing: 20) {
                                 Image(systemName: "figure.strengthtraining.traditional")
                                     .font(.system(size: 60))
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(.ironMuted)
                                 Text("No Exercises Yet")
                                     .font(.title3)
                                     .fontWeight(.bold)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.ironInk)
                                 Text("Add your first exercise to start tracking")
                                     .font(.subheadline)
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(.ironMuted)
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal, 40)
                             }
@@ -71,12 +71,25 @@ struct ActiveWorkoutView: View {
                                         exerciseName: exercise.exerciseName,
                                         context: modelContext
                                     )
-                                    let isSelected = selectedExerciseID == exercise.id
+                                    let selectedExercise = getSelectedExercise()
+                                    let isSelected = selectedExercise?.id == exercise.id
+                                    let loggerContent: AnyView? = isSelected && !session.isCompleted
+                                        ? AnyView(
+                                            SmartParserInput(
+                                                exercise: exercise,
+                                                previousSets: previousSets,
+                                                showsHeader: false,
+                                                isEmbedded: true,
+                                                onLog: handleLog
+                                            )
+                                        )
+                                        : nil
 
                                     ExerciseCard(
                                         exercise: exercise,
                                         previousSets: previousSets,
-                                        isSelected: isSelected
+                                        isSelected: isSelected,
+                                        loggerContent: loggerContent
                                     )
                                     .onTapGesture {
                                         if !session.isCompleted {
@@ -89,15 +102,6 @@ struct ActiveWorkoutView: View {
                             .padding(.horizontal)
                             .padding(.bottom, 20)
                         }
-                    }
-                }
-                .safeAreaInset(edge: .bottom) {
-                    if !session.isCompleted {
-                        SmartParserInput(
-                            exercise: getSelectedExercise(),
-                            previousSets: getPreviousSetsForSelectedExercise(),
-                            onLog: handleLog
-                        )
                     }
                 }
             }
@@ -113,14 +117,14 @@ struct ActiveWorkoutView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                if selectedExerciseID != nil && !session.isCompleted {
+                if getSelectedExercise() != nil && !session.isCompleted {
                     Button(action: {
                         if let exercise = getSelectedExercise() {
                             deleteExercise(exercise)
                         }
                     }) {
                         Image(systemName: "trash")
-                            .foregroundColor(.red)
+                            .foregroundColor(.ironDanger)
                     }
                     .frame(minWidth: 44, minHeight: 44)
                 }
@@ -130,7 +134,7 @@ struct ActiveWorkoutView: View {
                 if !session.isCompleted {
                     Button(action: { showAddExercise = true }) {
                         Image(systemName: "plus")
-                            .foregroundColor(.white)
+                            .foregroundColor(.ironInk)
                     }
                     .frame(minWidth: 44, minHeight: 44)
                 }
@@ -150,6 +154,9 @@ struct ActiveWorkoutView: View {
                 dismiss()
             }
         }
+        .onChange(of: session.exercises.map(\.id)) { _, exerciseIDs in
+            selectedExerciseID = exerciseIDs.last
+        }
         .alert("Finish Workout", isPresented: $showFinishWorkout) {
             Button("Cancel", role: .cancel) { }
             Button("Finish", role: .destructive) {
@@ -162,9 +169,9 @@ struct ActiveWorkoutView: View {
 
     private func getSelectedExercise() -> ExerciseLog? {
         guard let selectedID = selectedExerciseID else {
-            return session.exercises.first
+            return session.exercises.last
         }
-        return session.exercises.first { $0.id == selectedID }
+        return session.exercises.first { $0.id == selectedID } ?? session.exercises.last
     }
 
     private func getPreviousSetsForSelectedExercise() -> [SetEntry] {
@@ -257,17 +264,17 @@ struct AddExerciseSheet: View {
                 }
                 .pickerStyle(.segmented)
                 .padding()
-                .background(Color.gray.opacity(0.05))
+                .background(Color.ironMuted.opacity(0.05))
 
                 List {
                     if filteredExercises.isEmpty && !searchText.isEmpty {
                         Text("No master exercises for \(selectedMuscleGroup.rawValue)")
-                            .foregroundColor(.gray)
+                            .foregroundColor(.ironMuted)
                             .frame(maxWidth: .infinity, alignment: .center)
                             .padding()
                     } else if filteredExercises.isEmpty {
                         Text("No exercises found")
-                            .foregroundColor(.gray)
+                            .foregroundColor(.ironMuted)
                             .frame(maxWidth: .infinity, alignment: .center)
                             .padding()
                     } else {
@@ -297,17 +304,17 @@ struct AddExerciseSheet: View {
                                     Spacer()
 
                                     Image(systemName: "plus.circle")
-                                        .foregroundColor(.blue)
+                                        .foregroundColor(.ironPrimary)
                                 }
                                 .padding(.vertical, 12)
-                                .listRowBackground(Color.black)
+                                .listRowBackground(Color.ironBackground)
                             }
                         }
                     }
                 }
                 .listStyle(.plain)
                 .scrollContentBackground(.hidden)
-                .background(Color.black)
+                .background(Color.ironBackground)
                 .searchable(text: $searchText, prompt: "Search exercises")
                 .navigationTitle("Add Exercise")
                 .navigationBarTitleDisplayMode(.inline)
@@ -323,16 +330,19 @@ struct AddExerciseSheet: View {
                             showAddNewExercise = true
                         }) {
                             Image(systemName: "plus")
-                                .foregroundColor(.blue)
+                                .foregroundColor(.ironPrimary)
                         }
                         .frame(minWidth: 44, minHeight: 44)
                     }
                 }
             }
-            .background(Color.black)
+            .background(Color.ironBackground)
         }
         .sheet(isPresented: $showAddNewExercise) {
             NewExerciseSheet(muscleGroup: selectedMuscleGroup)
+        }
+        .onAppear {
+            settings.ensureDefaultMasterExercises()
         }
     }
 

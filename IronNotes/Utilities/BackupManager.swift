@@ -74,6 +74,7 @@ enum BackupError: LocalizedError {
     }
 }
 
+@MainActor
 enum BackupManager {
     static func makeBackup(
         sessions: [WorkoutSession],

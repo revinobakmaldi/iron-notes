@@ -5,6 +5,7 @@ struct ExerciseCard: View {
     let exercise: ExerciseLog
     var previousSets: [SetEntry] = []
     let isSelected: Bool
+    var loggerContent: AnyView?
     @Environment(\.modelContext) private var modelContext
     @Environment(AppSettings.self) private var settings
 
@@ -18,7 +19,7 @@ struct ExerciseCard: View {
                 Text(exercise.exerciseName)
                     .font(.title3)
                     .fontWeight(.bold)
-                    .foregroundColor(.white)
+                    .foregroundColor(.ironInk)
 
                 Spacer()
 
@@ -30,7 +31,7 @@ struct ExerciseCard: View {
                 } label: {
                     Image(systemName: "clock.arrow.circlepath")
                         .font(.system(size: 16))
-                        .foregroundColor(.blue)
+                        .foregroundColor(.ironPrimary)
                         .frame(width: 44, height: 44)
                 }
                 .buttonStyle(.plain)
@@ -40,24 +41,24 @@ struct ExerciseCard: View {
                     .font(.caption)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(Color.blue.opacity(0.3))
-                    .foregroundColor(.blue)
+                    .background(Color.ironPrimary.opacity(0.3))
+                    .foregroundColor(.ironPrimary)
                     .cornerRadius(8)
             }
 
             if PRCalculator.isAssistedExercise(exercise.exerciseName) {
                 Text("↓ Lower is better")
                     .font(.caption2)
-                    .foregroundColor(.green)
+                    .foregroundColor(.ironSuccess)
             }
 
             if exercise.sets.isEmpty {
                 Text("No sets logged yet")
                     .font(.subheadline)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.ironMuted)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding()
-                    .background(Color.gray.opacity(0.1))
+                    .background(Color.ironMuted.opacity(0.1))
                     .cornerRadius(12)
             } else {
                 setsTable
@@ -67,41 +68,48 @@ struct ExerciseCard: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Previous Session Summary")
                         .font(.caption)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.ironMuted)
 
                     previousSessionSummary
                 }
             }
+
+            if let loggerContent {
+                Divider()
+                    .background(Color.ironMuted.opacity(0.3))
+
+                loggerContent
+            }
         }
         .padding(16)
-        .background(isSelected ? Color.blue.opacity(0.1) : Color.gray.opacity(0.1))
+        .background(isSelected ? Color.ironPrimary.opacity(0.1) : Color.ironMuted.opacity(0.1))
         .cornerRadius(16)
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 2)
+                .stroke(isSelected ? Color.ironPrimary : Color.clear, lineWidth: 2)
         )
     }
 
     private var setsTable: some View {
         VStack(spacing: 0) {
             HStack {
+                Text("Set")
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .frame(width: 50, alignment: .center)
+                    .foregroundColor(.ironMuted)
+
                 Text("Weight")
                     .font(.caption)
                     .fontWeight(.bold)
                     .frame(width: 110, alignment: .center)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.ironMuted)
 
                 Text("Reps")
                     .font(.caption)
                     .fontWeight(.bold)
                     .frame(width: 80, alignment: .center)
-                    .foregroundColor(.gray)
-
-                Text("Sets")
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .frame(width: 50, alignment: .center)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.ironMuted)
 
                 Spacer()
 
@@ -109,31 +117,32 @@ struct ExerciseCard: View {
                     .frame(width: 44, alignment: .trailing)
             }
             .padding(.vertical, 8)
-            .background(Color.gray.opacity(0.2))
+            .background(Color.ironMuted.opacity(0.2))
 
-            ForEach(exercise.sets.sorted(by: { $0.timestamp < $1.timestamp })) { set in
+            ForEach(numberedSets, id: \.set.id) { item in
                 HStack {
-                    Text(setWeightLabel(set))
+                    Text(item.displayNumber)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .frame(width: 50, alignment: .center)
+                        .foregroundColor(.ironMuted)
+
+                    Text(setWeightLabel(item.set))
                         .font(.subheadline)
                         .frame(width: 110, alignment: .center)
-                        .foregroundColor(.white)
+                        .foregroundColor(.ironInk)
 
-                    Text("\(set.reps)")
+                    Text("\(item.set.reps)")
                         .font(.subheadline)
                         .frame(width: 80, alignment: .center)
-                        .foregroundColor(.white)
-
-                    Text("\(set.setCount)")
-                        .font(.subheadline)
-                        .frame(width: 50, alignment: .center)
-                        .foregroundColor(.white)
+                        .foregroundColor(.ironInk)
 
                     Spacer()
 
-                    if set.isPR {
+                    if item.set.isPR {
                         Image(systemName: "star.fill")
                             .font(.system(size: 16))
-                            .foregroundColor(.yellow)
+                            .foregroundColor(.ironPR)
                             .frame(width: 44, alignment: .trailing)
                     } else {
                         Text("")
@@ -141,14 +150,31 @@ struct ExerciseCard: View {
                     }
                 }
                 .padding(.vertical, 8)
-                .background(set.isPR ? Color.yellow.opacity(0.1) : Color.clear)
+                .background(item.set.isPR ? Color.ironPR.opacity(0.1) : Color.clear)
             }
         }
         .cornerRadius(12)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                .stroke(Color.ironMuted.opacity(0.3), lineWidth: 1)
         )
+    }
+
+    private var numberedSets: [(displayNumber: String, set: SetEntry)] {
+        var nextSetNumber = 1
+
+        return exercise.sets
+            .sorted { $0.timestamp < $1.timestamp }
+            .map { set in
+                let startNumber = nextSetNumber
+                nextSetNumber += set.setCount
+
+                if set.setCount > 1 {
+                    return ("\(startNumber)-\(nextSetNumber - 1)", set)
+                }
+
+                return ("\(startNumber)", set)
+            }
     }
 
     private var previousSessionSummary: some View {
@@ -182,19 +208,19 @@ struct ExerciseCard: View {
             if hasPR {
                 HStack(spacing: 4) {
                     Image(systemName: "star.fill")
-                        .foregroundColor(.yellow)
+                        .foregroundColor(.ironPR)
                         Text("PR achieved!")
                         .font(.caption)
-                        .foregroundColor(.yellow)
+                        .foregroundColor(.ironPR)
                 }
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
-                .background(Color.yellow.opacity(0.1))
+                .background(Color.ironPR.opacity(0.1))
                 .cornerRadius(6)
             }
         }
         .padding()
-        .background(Color.gray.opacity(0.05))
+        .background(Color.ironMuted.opacity(0.05))
         .cornerRadius(8)
     }
 
@@ -220,16 +246,16 @@ struct SummaryItem: View {
         VStack(spacing: 2) {
             Image(systemName: icon)
                 .font(.caption)
-                .foregroundColor(.gray.opacity(0.5))
+                .foregroundColor(.ironMuted.opacity(0.5))
 
             Text(value)
                 .font(.headline)
                 .fontWeight(.bold)
-                .foregroundColor(.white)
+                .foregroundColor(.ironInk)
 
             Text(label)
                 .font(.caption2)
-                .foregroundColor(.gray)
+                .foregroundColor(.ironMuted)
         }
     }
 }

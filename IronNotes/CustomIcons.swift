@@ -46,13 +46,13 @@ struct TimeBasedGreeting: View {
             Text(greeting)
                 .font(.title)
                 .fontWeight(.bold)
-                .foregroundColor(.white)
+                .foregroundColor(.ironInk)
                 .scaleEffect(animateGreeting ? 1 : 0.95)
                 .opacity(animateGreeting ? 1 : 0)
 
             Text("Ready to crush it today?")
                 .font(.subheadline)
-                .foregroundColor(.gray)
+                .foregroundColor(.ironMuted)
                 .offset(y: animateGreeting ? 0 : 10)
                 .opacity(animateGreeting ? 1 : 0)
         }
