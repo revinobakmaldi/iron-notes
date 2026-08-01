@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SmartParserInput: View {
     let exercise: ExerciseLog?
+    var previousSets: [SetEntry] = []
     var onLog: (Double, Int, Int, Bool) -> Void
     var onToggleTimer: () -> Void = {}
     @Environment(AppSettings.self) private var settings
@@ -15,6 +16,18 @@ struct SmartParserInput: View {
 
     var lastSet: SetEntry? {
         exercise?.sets.sorted(by: { $0.timestamp > $1.timestamp }).first
+    }
+
+    var previousSessionLastSet: SetEntry? {
+        previousSets.sorted(by: { $0.timestamp > $1.timestamp }).first
+    }
+
+    var suggestedSet: SetEntry? {
+        lastSet ?? previousSessionLastSet
+    }
+
+    private var suggestionTitle: String {
+        lastSet == nil && previousSessionLastSet != nil ? "Previous session:" : "Last set:"
     }
 
     private var unitLabel: String {
@@ -49,6 +62,15 @@ struct SmartParserInput: View {
             }
         }
         .background(Color.black)
+        .onAppear {
+            applySuggestedSetIfNeeded()
+        }
+        .onChange(of: exercise?.id) { _, _ in
+            applySuggestedSet()
+        }
+        .onChange(of: previousSessionLastSet?.id) { _, _ in
+            applySuggestedSetIfNeeded()
+        }
     }
 
     private var textModeInput: some View {
@@ -101,23 +123,20 @@ struct SmartParserInput: View {
 
     private var quickModeInput: some View {
         VStack(spacing: 12) {
-            if let last = lastSet {
+            if let suggestedSet {
                 HStack {
-                    Text("Last set:")
+                    Text(suggestionTitle)
                         .font(.caption)
                         .foregroundColor(.gray)
 
                     Spacer()
 
-                    Text(lastSetSummary(last))
+                    Text(lastSetSummary(suggestedSet))
                         .font(.caption)
                         .foregroundColor(.gray)
 
                     Button(action: {
-                        weight = last.weight
-                        reps = last.reps
-                        setCount = last.setCount
-                        isSingleArm = last.isSingleArm
+                        applySuggestedSet()
                         HapticManager.light()
                     }) {
                         Image(systemName: "arrow.counterclockwise")
@@ -290,6 +309,28 @@ struct SmartParserInput: View {
         let setPrefix = set.setCount > 1 ? "\(set.setCount) sets of " : ""
         let singleArmSuffix = set.isSingleArm ? " · single arm" : ""
         return "\(setPrefix)\(formatWeight(set.weight))\(unitLabel) x \(set.reps)\(singleArmSuffix)"
+    }
+
+    private func applySuggestedSetIfNeeded() {
+        guard weight == 0, reps == 0 else {
+            return
+        }
+        applySuggestedSet()
+    }
+
+    private func applySuggestedSet() {
+        guard let suggestedSet else {
+            weight = 0
+            reps = 0
+            setCount = 1
+            isSingleArm = false
+            return
+        }
+
+        weight = suggestedSet.weight
+        reps = suggestedSet.reps
+        setCount = suggestedSet.setCount
+        isSingleArm = suggestedSet.isSingleArm
     }
 
     private func formatWeight(_ weight: Double) -> String {

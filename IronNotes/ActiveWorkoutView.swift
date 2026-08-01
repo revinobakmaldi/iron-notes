@@ -95,6 +95,7 @@ struct ActiveWorkoutView: View {
                     if !session.isCompleted {
                         SmartParserInput(
                             exercise: getSelectedExercise(),
+                            previousSets: getPreviousSetsForSelectedExercise(),
                             onLog: handleLog
                         )
                     }
@@ -164,6 +165,17 @@ struct ActiveWorkoutView: View {
             return session.exercises.first
         }
         return session.exercises.first { $0.id == selectedID }
+    }
+
+    private func getPreviousSetsForSelectedExercise() -> [SetEntry] {
+        guard let exercise = getSelectedExercise() else {
+            return []
+        }
+
+        return session.getPreviousSessionData(
+            exerciseName: exercise.exerciseName,
+            context: modelContext
+        )
     }
 
     private func handleLog(weight: Double, reps: Int, setCount: Int, isSingleArm: Bool) {
