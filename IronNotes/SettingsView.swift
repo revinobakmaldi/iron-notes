@@ -105,7 +105,7 @@ struct SettingsView: View {
                         Text("Version")
                             .foregroundColor(.ironInk)
                         Spacer()
-                        Text("1.0.0")
+                        Text(appVersion)
                             .foregroundColor(.ironMuted)
                     }
 
@@ -209,6 +209,17 @@ struct SettingsView: View {
         .padding(4)
         .background(Color.ironSurfaceMuted.opacity(0.65))
         .cornerRadius(12)
+    }
+
+    private var appVersion: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "-"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
+
+        guard let build else {
+            return version
+        }
+
+        return "\(version) (\(build))"
     }
 
     private func settingsSection<Content: View>(
