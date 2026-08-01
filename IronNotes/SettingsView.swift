@@ -24,8 +24,9 @@ struct SettingsView: View {
         ZStack {
             Color.ironBackground.ignoresSafeArea()
 
-            Form {
-                Section {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    settingsSection("Timer") {
                     HStack {
                         Text("Rest Timer Duration")
                             .foregroundColor(.ironInk)
@@ -56,12 +57,9 @@ struct SettingsView: View {
                         }
                     }
                     .padding(.vertical, 8)
-                } header: {
-                    Text("Timer")
-                        .foregroundColor(.ironInk)
                 }
 
-                Section {
+                    settingsSection("Units") {
                     Picker("Weight Unit", selection: Binding(
                         get: { settings.preferredUnit },
                         set: {
@@ -75,12 +73,9 @@ struct SettingsView: View {
                     }
                     .pickerStyle(.segmented)
                     .foregroundColor(.ironInk)
-                } header: {
-                    Text("Units")
-                        .foregroundColor(.ironInk)
                 }
 
-                Section {
+                    settingsSection("Master Exercises") {
                     HStack {
                         Picker("Muscle Group", selection: $selectedMuscleGroup) {
                             ForEach(MuscleGroup.selectableCases, id: \.self) { group in
@@ -97,12 +92,9 @@ struct SettingsView: View {
                     }
 
                     masterExercisesList(for: selectedMuscleGroup)
-                } header: {
-                    Text("Master Exercises")
-                        .foregroundColor(.ironInk)
                 }
 
-                Section {
+                    settingsSection("Backup") {
                     Button(action: exportBackup) {
                         Label("Export Backup", systemImage: "square.and.arrow.up")
                     }
@@ -114,15 +106,13 @@ struct SettingsView: View {
                         Label("Import Backup", systemImage: "square.and.arrow.down")
                     }
                     .foregroundColor(.ironAccent)
-                } header: {
-                    Text("Backup")
-                        .foregroundColor(.ironInk)
-                } footer: {
+
                     Text("Importing a backup replaces local workouts, settings, and master exercises.")
+                        .font(.caption)
                         .foregroundColor(.ironMuted)
                 }
 
-                Section {
+                    settingsSection("About") {
                     HStack {
                         Text("Version")
                             .foregroundColor(.ironInk)
@@ -138,12 +128,10 @@ struct SettingsView: View {
                         Text("SwiftUI + SwiftData")
                             .foregroundColor(.ironMuted)
                     }
-                } header: {
-                    Text("About")
-                        .foregroundColor(.ironInk)
+                    }
                 }
+                .padding()
             }
-            .scrollContentBackground(.hidden)
             .background(Color.ironBackground)
         }
         .navigationTitle("Settings")
@@ -208,6 +196,29 @@ struct SettingsView: View {
         }
     }
 
+    private func settingsSection<Content: View>(
+        _ title: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.headline)
+                .foregroundColor(.ironInk)
+
+            VStack(alignment: .leading, spacing: 12) {
+                content()
+            }
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.ironSurface)
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.ironSurfaceMuted, lineWidth: 1)
+            )
+        }
+    }
+
     @ViewBuilder
     private func masterExercisesList(for muscleGroup: MuscleGroup) -> some View {
         let exercises = settings.getExercises(for: muscleGroup)
@@ -244,7 +255,7 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(exercise.name)
                     .font(.subheadline)
-                    .foregroundColor(.primary)
+                    .foregroundColor(.ironInk)
                     .fontWeight(.medium)
             }
 
