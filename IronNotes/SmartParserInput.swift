@@ -190,7 +190,7 @@ struct SmartParserInput: View {
     }
 
     private var quickModeInput: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 8) {
             if let suggestedSet {
                 HStack {
                     Text(suggestionTitle)
@@ -214,111 +214,113 @@ struct SmartParserInput: View {
                     .frame(minWidth: 44, minHeight: 44)
                 }
                 .padding(.horizontal, horizontalPadding)
-                .padding(.top, 4)
             }
 
-            VStack(spacing: 8) {
+            LazyVGrid(columns: [
+                GridItem(.flexible(), spacing: 8),
+                GridItem(.flexible(), spacing: 8)
+            ], spacing: 8) {
                 weightInput
                 repsInput
-
-                HStack {
-                    setNumberDisplay
-                    Spacer()
-                    isSingleArmToggle
-                }
             }
             .padding(.horizontal, horizontalPadding)
-            .padding(.bottom, 8)
+
+            HStack {
+                setNumberDisplay
+                Spacer()
+                isSingleArmToggle
+            }
+            .padding(.horizontal, horizontalPadding)
 
             logButton
                 .padding(.horizontal, horizontalPadding)
-                .padding(.bottom, 12)
+                .padding(.bottom, 8)
         }
     }
 
     private var weightInput: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 3) {
             Text("Weight")
                 .font(.caption)
                 .foregroundColor(.gray)
 
-            HStack(spacing: 12) {
+            HStack(spacing: 6) {
                 Button(action: {
                     HapticManager.light()
                     weight = max(weight - 2.5, 0)
                 }) {
                     Image(systemName: "minus.circle.fill")
-                        .font(.system(size: 24))
+                        .font(.system(size: 20))
                         .foregroundColor(.blue)
                 }
-                .frame(minWidth: 36, minHeight: 36)
+                .frame(minWidth: 32, minHeight: 36)
 
                 TextField("0.0", value: $weight, format: .number.precision(.fractionLength(1)))
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
                     .keyboardType(.decimalPad)
-                    .frame(minWidth: 90)
+                    .frame(minWidth: 52)
 
                 Button(action: {
                     HapticManager.light()
                     weight += 2.5
                 }) {
                     Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 24))
+                        .font(.system(size: 20))
                         .foregroundColor(.blue)
                 }
-                .frame(minWidth: 36, minHeight: 36)
+                .frame(minWidth: 32, minHeight: 36)
 
                 Text(unitLabel)
-                    .font(.headline)
+                    .font(.caption)
                     .foregroundColor(.gray)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
             .background(Color.gray.opacity(0.1))
-            .cornerRadius(10)
+            .cornerRadius(8)
         }
     }
 
     private var repsInput: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 3) {
             Text("Reps")
                 .font(.caption)
                 .foregroundColor(.gray)
 
-            HStack(spacing: 12) {
+            HStack(spacing: 6) {
                 Button(action: {
                     HapticManager.light()
                     reps = max(reps - 1, 1)
                 }) {
                     Image(systemName: "minus.circle.fill")
-                        .font(.system(size: 24))
+                        .font(.system(size: 20))
                         .foregroundColor(.blue)
                 }
-                .frame(minWidth: 36, minHeight: 36)
+                .frame(minWidth: 32, minHeight: 36)
 
                 TextField("0", value: $reps, format: .number)
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
                     .keyboardType(.numberPad)
-                    .frame(minWidth: 90)
+                    .frame(minWidth: 52)
 
                 Button(action: {
                     HapticManager.light()
                     reps += 1
                 }) {
                     Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 24))
+                        .font(.system(size: 20))
                         .foregroundColor(.blue)
                 }
-                .frame(minWidth: 36, minHeight: 36)
+                .frame(minWidth: 32, minHeight: 36)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
             .background(Color.gray.opacity(0.1))
-            .cornerRadius(10)
+            .cornerRadius(8)
         }
     }
 
@@ -327,7 +329,7 @@ struct SmartParserInput: View {
         let nextSetNumber = completedSets + 1
         return HStack(spacing: 12) {
             Text("Set #\(nextSetNumber)")
-                .font(.headline)
+                .font(.subheadline)
                 .foregroundColor(.gray)
         }
     }
@@ -345,8 +347,8 @@ struct SmartParserInput: View {
                     .font(.caption)
                     .foregroundColor(isSingleArm ? .blue : .gray)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
+            .padding(.horizontal, 9)
+            .padding(.vertical, 5)
             .background(isSingleArm ? Color.blue.opacity(0.1) : Color.gray.opacity(0.1))
             .cornerRadius(6)
         }
@@ -361,14 +363,14 @@ struct SmartParserInput: View {
             HStack {
                 Spacer()
                 Text("LOG SET")
-                    .font(.headline)
+                    .font(.subheadline)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                 Spacer()
             }
-            .frame(height: 48)
+            .frame(height: 40)
             .background(Color.blue)
-            .cornerRadius(10)
+            .cornerRadius(8)
         }
         .disabled(exercise == nil || reps <= 0)
     }
