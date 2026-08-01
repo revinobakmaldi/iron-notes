@@ -79,6 +79,11 @@ struct SmartParserInput: View {
                 .font(.caption)
                 .foregroundColor(.gray)
 
+            if lastSet != nil || previousSessionLastSet != nil {
+                suggestionChips
+                    .padding(.horizontal, 16)
+            }
+
             HStack(spacing: 12) {
                 TextField("100\(unitLabel) 10r", text: $inputText)
                     .textFieldStyle(.plain)
@@ -119,6 +124,44 @@ struct SmartParserInput: View {
             .padding(.horizontal, 16)
             .padding(.bottom, 12)
         }
+    }
+
+    private var suggestionChips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                if let lastSet {
+                    suggestionChip(title: "Last set", set: lastSet)
+                }
+
+                if let previousSessionLastSet {
+                    suggestionChip(title: "Previous", set: previousSessionLastSet)
+                }
+            }
+        }
+    }
+
+    private func suggestionChip(title: String, set: SetEntry) -> some View {
+        Button(action: {
+            applySetToInputs(set)
+            inputText = parserText(for: set)
+            HapticManager.light()
+        }) {
+            HStack(spacing: 6) {
+                Text(title)
+                    .font(.caption2)
+                    .foregroundColor(.gray)
+
+                Text(lastSetSummary(set))
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.white)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .background(Color.gray.opacity(0.15))
+            .cornerRadius(8)
+        }
+        .buttonStyle(.plain)
     }
 
     private var quickModeInput: some View {
@@ -327,10 +370,20 @@ struct SmartParserInput: View {
             return
         }
 
-        weight = suggestedSet.weight
-        reps = suggestedSet.reps
-        setCount = suggestedSet.setCount
-        isSingleArm = suggestedSet.isSingleArm
+        applySetToInputs(suggestedSet)
+    }
+
+    private func applySetToInputs(_ set: SetEntry) {
+        weight = set.weight
+        reps = set.reps
+        setCount = set.setCount
+        isSingleArm = set.isSingleArm
+    }
+
+    private func parserText(for set: SetEntry) -> String {
+        let singleArmPrefix = set.isSingleArm ? "SA " : ""
+        let setSuffix = set.setCount > 1 ? "x\(set.setCount)" : ""
+        return "\(singleArmPrefix)\(formatWeight(set.weight))x\(set.reps)\(setSuffix)"
     }
 
     private func formatWeight(_ weight: Double) -> String {
