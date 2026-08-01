@@ -71,7 +71,7 @@ struct ExerciseProgressView: View {
             }
             .padding()
         }
-        .background(Color.black)
+        .background(Color.ironBackground)
         .navigationTitle(exerciseName)
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -80,17 +80,17 @@ struct ExerciseProgressView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
                 Image(systemName: "chart.line.uptrend.xyaxis")
-                    .foregroundColor(.blue)
+                    .foregroundColor(.ironPrimary)
 
                 Text(muscleGroup.rawValue)
                     .font(.subheadline)
-                    .foregroundColor(.blue)
+                    .foregroundColor(.ironPrimary)
             }
 
             Text(exerciseName)
                 .font(.title2)
                 .fontWeight(.bold)
-                .foregroundColor(.white)
+                .foregroundColor(.ironInk)
         }
     }
 
@@ -98,16 +98,16 @@ struct ExerciseProgressView: View {
         VStack(spacing: 16) {
             Image(systemName: "clock.arrow.circlepath")
                 .font(.system(size: 52))
-                .foregroundColor(.gray)
+                .foregroundColor(.ironMuted)
 
             Text("No History Yet")
                 .font(.title3)
                 .fontWeight(.bold)
-                .foregroundColor(.white)
+                .foregroundColor(.ironInk)
 
             Text("Log this exercise to see progress over time.")
                 .font(.subheadline)
-                .foregroundColor(.gray)
+                .foregroundColor(.ironMuted)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
@@ -123,28 +123,28 @@ struct ExerciseProgressView: View {
                 icon: "calendar",
                 title: "Sessions",
                 value: "\(completedExerciseSessions.count)",
-                color: .blue
+                color: .ironPrimary
             )
 
             ExerciseProgressStatCard(
                 icon: "number",
                 title: "Total Sets",
                 value: "\(allSets.reduce(0) { $0 + $1.setCount })",
-                color: .green
+                color: .ironSuccess
             )
 
             ExerciseProgressStatCard(
                 icon: "scalemass",
                 title: PRCalculator.isAssistedExercise(exerciseName) ? "Best Assist" : "Best Set",
                 value: bestSet.map { "\(formatWeight($0.weight))\(unitLabel) x \($0.reps)" } ?? "-",
-                color: .orange
+                color: .ironAccent
             )
 
             ExerciseProgressStatCard(
                 icon: "star.fill",
                 title: "PRs",
                 value: "\(prSets.count)",
-                color: .yellow
+                color: .ironPR
             )
         }
     }
@@ -153,20 +153,20 @@ struct ExerciseProgressView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Estimated 1RM")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(.ironInk)
 
             Chart(completedExerciseSessions) { item in
                 LineMark(
                     x: .value("Date", item.date),
                     y: .value("Estimated 1RM", item.bestEstimated1RM)
                 )
-                .foregroundStyle(Color.blue)
+                .foregroundStyle(Color.ironPrimary)
 
                 PointMark(
                     x: .value("Date", item.date),
                     y: .value("Estimated 1RM", item.bestEstimated1RM)
                 )
-                .foregroundStyle(Color.blue)
+                .foregroundStyle(Color.ironPrimary)
             }
             .chartYAxis {
                 AxisMarks { value in
@@ -181,7 +181,7 @@ struct ExerciseProgressView: View {
             .frame(height: 220)
         }
         .padding(16)
-        .background(Color.gray.opacity(0.1))
+        .background(Color.ironMuted.opacity(0.1))
         .cornerRadius(12)
     }
 
@@ -189,14 +189,14 @@ struct ExerciseProgressView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Session Volume")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(.ironInk)
 
             Chart(completedExerciseSessions) { item in
                 BarMark(
                     x: .value("Date", item.date),
                     y: .value("Volume", item.totalVolume)
                 )
-                .foregroundStyle(Color.green)
+                .foregroundStyle(Color.ironSuccess)
             }
             .chartYAxis {
                 AxisMarks { value in
@@ -211,7 +211,7 @@ struct ExerciseProgressView: View {
             .frame(height: 220)
         }
         .padding(16)
-        .background(Color.gray.opacity(0.1))
+        .background(Color.ironMuted.opacity(0.1))
         .cornerRadius(12)
     }
 
@@ -219,7 +219,7 @@ struct ExerciseProgressView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Recent History")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(.ironInk)
 
             ForEach(recentSessions) { session in
                 VStack(alignment: .leading, spacing: 8) {
@@ -227,21 +227,21 @@ struct ExerciseProgressView: View {
                         Text(session.date, format: .dateTime.month(.abbreviated).day().year())
                             .font(.subheadline)
                             .fontWeight(.semibold)
-                            .foregroundColor(.white)
+                            .foregroundColor(.ironInk)
 
                         Spacer()
 
                         Text("\(session.totalSets) sets")
                             .font(.caption)
-                            .foregroundColor(.gray)
+                            .foregroundColor(.ironMuted)
                     }
 
                     Text(session.setSummary(unit: unitLabel, formatWeight: formatWeight))
                         .font(.caption)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.ironMuted)
                 }
                 .padding(12)
-                .background(Color.gray.opacity(0.1))
+                .background(Color.ironMuted.opacity(0.1))
                 .cornerRadius(10)
             }
         }
@@ -251,41 +251,41 @@ struct ExerciseProgressView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("PR History")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(.ironInk)
 
             if prSets.isEmpty {
                 Text("No PRs recorded for this exercise yet.")
                     .font(.subheadline)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.ironMuted)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 24)
-                    .background(Color.gray.opacity(0.08))
+                    .background(Color.ironMuted.opacity(0.08))
                     .cornerRadius(10)
             } else {
                 ForEach(prSets.prefix(6)) { set in
                     HStack(spacing: 12) {
                         Image(systemName: "star.fill")
-                            .foregroundColor(.yellow)
+                            .foregroundColor(.ironPR)
 
                         VStack(alignment: .leading, spacing: 2) {
                             Text("\(formatWeight(set.weight))\(unitLabel) x \(set.reps)")
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
-                                .foregroundColor(.white)
+                                .foregroundColor(.ironInk)
 
                             Text(set.timestamp, format: .dateTime.month(.abbreviated).day().year())
                                 .font(.caption)
-                                .foregroundColor(.gray)
+                                .foregroundColor(.ironMuted)
                         }
 
                         Spacer()
 
                         Text("\(formatWeight(set.estimated1RM))\(unitLabel)")
                             .font(.caption)
-                            .foregroundColor(.yellow)
+                            .foregroundColor(.ironPR)
                     }
                     .padding(12)
-                    .background(Color.yellow.opacity(0.08))
+                    .background(Color.ironPR.opacity(0.08))
                     .cornerRadius(10)
                 }
             }
@@ -344,12 +344,12 @@ private struct ExerciseProgressStatCard: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.caption)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.ironMuted)
 
                 Text(value)
                     .font(.headline)
                     .fontWeight(.bold)
-                    .foregroundColor(.white)
+                    .foregroundColor(.ironInk)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
             }
@@ -357,7 +357,7 @@ private struct ExerciseProgressStatCard: View {
             Spacer(minLength: 0)
         }
         .padding(12)
-        .background(Color.gray.opacity(0.1))
+        .background(Color.ironMuted.opacity(0.1))
         .cornerRadius(10)
     }
 }

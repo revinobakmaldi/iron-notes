@@ -45,7 +45,7 @@ struct SmartParserInput: View {
                 HStack {
                     Text(exercise?.exerciseName ?? "Select Exercise")
                         .font(.headline)
-                        .foregroundColor(.blue)
+                        .foregroundColor(.ironPrimary)
 
                     Spacer()
 
@@ -58,7 +58,7 @@ struct SmartParserInput: View {
                     Text(showTextMode ? "Text Logger" : "Quick Logger")
                         .font(.caption)
                         .fontWeight(.semibold)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.ironMuted)
 
                     Spacer()
 
@@ -73,7 +73,7 @@ struct SmartParserInput: View {
                 quickModeInput
             }
         }
-        .background(isEmbedded ? Color.clear : Color.black)
+        .background(isEmbedded ? Color.clear : Color.ironBackground)
         .onAppear {
             applySuggestedSetIfNeeded()
         }
@@ -91,7 +91,7 @@ struct SmartParserInput: View {
             showTextMode.toggle()
         }) {
             Image(systemName: showTextMode ? "number" : "textformat")
-                .foregroundColor(.gray)
+                .foregroundColor(.ironMuted)
         }
         .frame(minWidth: 44, minHeight: 44)
     }
@@ -100,7 +100,7 @@ struct SmartParserInput: View {
         VStack(spacing: 12) {
             Text("Quick text mode: e.g., 100\(unitLabel) 10r")
                 .font(.caption)
-                .foregroundColor(.gray)
+                .foregroundColor(.ironMuted)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, horizontalPadding)
 
@@ -113,10 +113,10 @@ struct SmartParserInput: View {
                 TextField("100\(unitLabel) 10r", text: $inputText)
                     .textFieldStyle(.plain)
                     .font(.system(size: 18))
-                    .foregroundColor(.white)
+                    .foregroundColor(.ironInk)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 12)
-                    .background(Color.gray.opacity(0.15))
+                    .background(Color.ironMuted.opacity(0.15))
                     .cornerRadius(8)
 
                 Button(action: {
@@ -131,10 +131,10 @@ struct SmartParserInput: View {
                 }) {
                     Text("Log")
                         .font(.headline)
-                        .foregroundColor(.white)
+                        .foregroundColor(.ironOnPrimary)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
-                        .background(Color.blue)
+                        .background(Color.ironPrimary)
                         .cornerRadius(8)
                 }
 
@@ -143,7 +143,7 @@ struct SmartParserInput: View {
                 }) {
                     Text("Cancel")
                         .font(.subheadline)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.ironMuted)
                 }
             }
             .padding(.horizontal, horizontalPadding)
@@ -174,16 +174,16 @@ struct SmartParserInput: View {
             HStack(spacing: 6) {
                 Text(title)
                     .font(.caption2)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.ironMuted)
 
                 Text(lastSetSummary(set))
                     .font(.caption)
                     .fontWeight(.medium)
-                    .foregroundColor(.white)
+                    .foregroundColor(.ironInk)
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 8)
-            .background(Color.gray.opacity(0.15))
+            .background(Color.ironMuted.opacity(0.15))
             .cornerRadius(8)
         }
         .buttonStyle(.plain)
@@ -195,13 +195,13 @@ struct SmartParserInput: View {
                 HStack {
                     Text(suggestionTitle)
                         .font(.caption)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.ironMuted)
 
                     Spacer()
 
                     Text(lastSetSummary(suggestedSet))
                         .font(.caption)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.ironMuted)
 
                     Button(action: {
                         applySuggestedSet()
@@ -209,7 +209,7 @@ struct SmartParserInput: View {
                     }) {
                         Image(systemName: "arrow.counterclockwise")
                             .font(.caption)
-                            .foregroundColor(.blue)
+                            .foregroundColor(.ironPrimary)
                     }
                     .frame(minWidth: 44, minHeight: 44)
                 }
@@ -242,7 +242,7 @@ struct SmartParserInput: View {
         VStack(alignment: .leading, spacing: 3) {
             Text("Weight")
                 .font(.caption)
-                .foregroundColor(.gray)
+                .foregroundColor(.ironMuted)
 
             HStack(spacing: 6) {
                 Button(action: {
@@ -251,13 +251,13 @@ struct SmartParserInput: View {
                 }) {
                     Image(systemName: "minus.circle.fill")
                         .font(.system(size: 20))
-                        .foregroundColor(.blue)
+                        .foregroundColor(.ironPrimary)
                 }
                 .frame(minWidth: 32, minHeight: 36)
 
                 TextField("0.0", value: $weight, format: .number.precision(.fractionLength(1)))
                     .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
+                    .foregroundColor(.ironInk)
                     .multilineTextAlignment(.center)
                     .keyboardType(.decimalPad)
                     .frame(minWidth: 52)
@@ -268,17 +268,17 @@ struct SmartParserInput: View {
                 }) {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 20))
-                        .foregroundColor(.blue)
+                        .foregroundColor(.ironPrimary)
                 }
                 .frame(minWidth: 32, minHeight: 36)
 
                 Text(unitLabel)
                     .font(.caption)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.ironMuted)
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 6)
-            .background(Color.gray.opacity(0.1))
+            .background(Color.ironMuted.opacity(0.1))
             .cornerRadius(8)
         }
     }
@@ -287,7 +287,7 @@ struct SmartParserInput: View {
         VStack(alignment: .leading, spacing: 3) {
             Text("Reps")
                 .font(.caption)
-                .foregroundColor(.gray)
+                .foregroundColor(.ironMuted)
 
             HStack(spacing: 6) {
                 Button(action: {
@@ -296,13 +296,13 @@ struct SmartParserInput: View {
                 }) {
                     Image(systemName: "minus.circle.fill")
                         .font(.system(size: 20))
-                        .foregroundColor(.blue)
+                        .foregroundColor(.ironPrimary)
                 }
                 .frame(minWidth: 32, minHeight: 36)
 
                 TextField("0", value: $reps, format: .number)
                     .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
+                    .foregroundColor(.ironInk)
                     .multilineTextAlignment(.center)
                     .keyboardType(.numberPad)
                     .frame(minWidth: 52)
@@ -313,13 +313,13 @@ struct SmartParserInput: View {
                 }) {
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 20))
-                        .foregroundColor(.blue)
+                        .foregroundColor(.ironPrimary)
                 }
                 .frame(minWidth: 32, minHeight: 36)
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 6)
-            .background(Color.gray.opacity(0.1))
+            .background(Color.ironMuted.opacity(0.1))
             .cornerRadius(8)
         }
     }
@@ -330,7 +330,7 @@ struct SmartParserInput: View {
         return HStack(spacing: 12) {
             Text("Set #\(nextSetNumber)")
                 .font(.subheadline)
-                .foregroundColor(.gray)
+                .foregroundColor(.ironMuted)
         }
     }
 
@@ -349,7 +349,7 @@ struct SmartParserInput: View {
             }
             .padding(.horizontal, 9)
             .padding(.vertical, 5)
-            .background(isSingleArm ? Color.blue.opacity(0.1) : Color.gray.opacity(0.1))
+            .background(isSingleArm ? Color.ironPrimary.opacity(0.1) : Color.ironMuted.opacity(0.1))
             .cornerRadius(6)
         }
         .frame(minWidth: 44, minHeight: 44)
@@ -365,11 +365,11 @@ struct SmartParserInput: View {
                 Text("LOG SET")
                     .font(.subheadline)
                     .fontWeight(.bold)
-                    .foregroundColor(.white)
+                    .foregroundColor(.ironOnPrimary)
                 Spacer()
             }
             .frame(height: 40)
-            .background(Color.blue)
+            .background(Color.ironPrimary)
             .cornerRadius(8)
         }
         .disabled(exercise == nil || reps <= 0)

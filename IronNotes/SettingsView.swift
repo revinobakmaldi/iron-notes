@@ -22,25 +22,25 @@ struct SettingsView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color.ironBackground.ignoresSafeArea()
 
             Form {
                 Section {
                     HStack {
                         Text("Rest Timer Duration")
-                            .foregroundColor(.white)
+                            .foregroundColor(.ironInk)
 
                         Spacer()
 
                         Text("\(settings.restTimerDuration)s")
-                            .foregroundColor(.gray)
+                            .foregroundColor(.ironMuted)
                     }
 
                     VStack(alignment: .leading) {
                         HStack {
                             Text("30s")
                                 .font(.caption)
-                                .foregroundColor(.gray)
+                                .foregroundColor(.ironMuted)
 
                             Slider(value: Binding(
                                 get: { Double(settings.restTimerDuration) },
@@ -52,13 +52,13 @@ struct SettingsView: View {
 
                             Text("5m")
                                 .font(.caption)
-                                .foregroundColor(.gray)
+                                .foregroundColor(.ironMuted)
                         }
                     }
                     .padding(.vertical, 8)
                 } header: {
                     Text("Timer")
-                        .foregroundColor(.white)
+                        .foregroundColor(.ironInk)
                 }
 
                 Section {
@@ -74,10 +74,10 @@ struct SettingsView: View {
                         }
                     }
                     .pickerStyle(.segmented)
-                    .foregroundColor(.white)
+                    .foregroundColor(.ironInk)
                 } header: {
                     Text("Units")
-                        .foregroundColor(.white)
+                        .foregroundColor(.ironInk)
                 }
 
                 Section {
@@ -91,7 +91,7 @@ struct SettingsView: View {
 
                         Button(action: { showAddExercise = true }) {
                             Image(systemName: "plus")
-                                .foregroundColor(.blue)
+                                .foregroundColor(.ironPrimary)
                         }
                         .frame(minWidth: 44, minHeight: 44)
                     }
@@ -99,52 +99,52 @@ struct SettingsView: View {
                     masterExercisesList(for: selectedMuscleGroup)
                 } header: {
                     Text("Master Exercises")
-                        .foregroundColor(.white)
+                        .foregroundColor(.ironInk)
                 }
 
                 Section {
                     Button(action: exportBackup) {
                         Label("Export Backup", systemImage: "square.and.arrow.up")
                     }
-                    .foregroundColor(.blue)
+                    .foregroundColor(.ironPrimary)
 
                     Button(action: {
                         showImporter = true
                     }) {
                         Label("Import Backup", systemImage: "square.and.arrow.down")
                     }
-                    .foregroundColor(.orange)
+                    .foregroundColor(.ironAccent)
                 } header: {
                     Text("Backup")
-                        .foregroundColor(.white)
+                        .foregroundColor(.ironInk)
                 } footer: {
                     Text("Importing a backup replaces local workouts, settings, and master exercises.")
-                        .foregroundColor(.gray)
+                        .foregroundColor(.ironMuted)
                 }
 
                 Section {
                     HStack {
                         Text("Version")
-                            .foregroundColor(.white)
+                            .foregroundColor(.ironInk)
                         Spacer()
                         Text("1.0.0")
-                            .foregroundColor(.gray)
+                            .foregroundColor(.ironMuted)
                     }
 
                     HStack {
                         Text("Built with")
-                            .foregroundColor(.white)
+                            .foregroundColor(.ironInk)
                         Spacer()
                         Text("SwiftUI + SwiftData")
-                            .foregroundColor(.gray)
+                            .foregroundColor(.ironMuted)
                     }
                 } header: {
                     Text("About")
-                        .foregroundColor(.white)
+                        .foregroundColor(.ironInk)
                 }
             }
             .scrollContentBackground(.hidden)
-            .background(Color.black)
+            .background(Color.ironBackground)
         }
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
@@ -153,11 +153,11 @@ struct SettingsView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "figure.strengthtraining.traditional")
                         .font(.headline)
-                        .foregroundColor(.blue)
+                        .foregroundColor(.ironPrimary)
                     Text("IronNotes")
                         .font(.headline)
                         .fontWeight(.bold)
-                        .foregroundColor(.white)
+                        .foregroundColor(.ironInk)
                 }
             }
         }
@@ -214,7 +214,7 @@ struct SettingsView: View {
 
         if exercises.isEmpty {
             Text("No exercises for \(muscleGroup.rawValue)")
-                .foregroundColor(.gray)
+                .foregroundColor(.ironMuted)
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding()
         } else if exercises.count <= 4 {
@@ -256,7 +256,7 @@ struct SettingsView: View {
             }) {
                 Image(systemName: "pencil.circle.fill")
                     .font(.system(size: 16))
-                    .foregroundColor(.blue)
+                    .foregroundColor(.ironPrimary)
             }
             .buttonStyle(.plain)
             .frame(minWidth: 44, minHeight: 44)
@@ -267,14 +267,14 @@ struct SettingsView: View {
             }) {
                 Image(systemName: "trash.fill")
                     .font(.system(size: 16))
-                    .foregroundColor(.red.opacity(0.8))
+                    .foregroundColor(.ironDanger.opacity(0.8))
             }
             .buttonStyle(.plain)
             .frame(minWidth: 44, minHeight: 44)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background(Color.gray.opacity(0.15))
+        .background(Color.ironMuted.opacity(0.15))
         .cornerRadius(8)
     }
 

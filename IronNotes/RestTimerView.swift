@@ -13,49 +13,49 @@ struct RestTimerView: View {
 
     var body: some View {
         ZStack {
-            Color.black.opacity(0.8)
+            Color.ironBackground.opacity(0.8)
                 .ignoresSafeArea()
 
             VStack(spacing: 24) {
                 ZStack {
                     Circle()
-                        .stroke(Color.gray.opacity(0.3), lineWidth: 8)
+                        .stroke(Color.ironMuted.opacity(0.3), lineWidth: 8)
 
                     Circle()
                         .trim(from: 0, to: CGFloat(timerManager.remainingTime) / CGFloat(timerManager.totalTime))
-                        .stroke(Color.blue, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                        .stroke(Color.ironPrimary, style: StrokeStyle(lineWidth: 8, lineCap: .round))
                         .rotationEffect(Angle(degrees: -90))
                         .animation(.easeInOut(duration: 1), value: timerManager.remainingTime)
 
                     Text(timerManager.timeString)
                         .font(.system(size: 48, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
+                        .foregroundColor(.ironInk)
                 }
                 .frame(width: 200, height: 200)
 
                 Text("Rest Timer")
                     .font(.headline)
-                    .foregroundColor(.white)
+                    .foregroundColor(.ironInk)
 
                 HStack(spacing: 20) {
                     Button(action: { timerManager.subtractTime(seconds: 10) }) {
                         Image(systemName: "minus.circle.fill")
                             .font(.system(size: 40))
-                            .foregroundColor(.blue)
+                            .foregroundColor(.ironPrimary)
                     }
                     .frame(minWidth: 44, minHeight: 44)
 
                     Button(action: { timerManager.toggleTimer() }) {
                         Image(systemName: timerManager.isActive ? "pause.circle.fill" : "play.circle.fill")
                             .font(.system(size: 60))
-                            .foregroundColor(.blue)
+                            .foregroundColor(.ironPrimary)
                     }
                     .frame(minWidth: 44, minHeight: 44)
 
                     Button(action: { timerManager.addTime(seconds: 10) }) {
                         Image(systemName: "plus.circle.fill")
                             .font(.system(size: 40))
-                            .foregroundColor(.blue)
+                            .foregroundColor(.ironPrimary)
                     }
                     .frame(minWidth: 44, minHeight: 44)
                 }
@@ -63,7 +63,7 @@ struct RestTimerView: View {
                 Button(action: dismiss) {
                     Text("Skip")
                         .font(.headline)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.ironMuted)
                 }
                 .frame(minWidth: 44, minHeight: 44)
             }

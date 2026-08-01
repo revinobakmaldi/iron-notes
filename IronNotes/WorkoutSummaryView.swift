@@ -31,19 +31,19 @@ struct WorkoutSummaryView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color.black.ignoresSafeArea()
+                Color.ironBackground.ignoresSafeArea()
 
                 ScrollView {
                     VStack(spacing: 24) {
                         VStack(spacing: 12) {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.system(size: 60))
-                                .foregroundColor(.green)
+                                .foregroundColor(.ironSuccess)
 
                             Text("Workout Completed!")
                                 .font(.title2)
                                 .fontWeight(.bold)
-                                .foregroundColor(.white)
+                                .foregroundColor(.ironInk)
                         }
                         .padding(.top, 20)
 
@@ -71,7 +71,7 @@ struct WorkoutSummaryView: View {
                                     icon: "star.fill",
                                     title: "PRs Achieved",
                                     value: "\(prCount)",
-                                    color: .yellow
+                                    color: .ironPR
                                 )
                             }
                         }
@@ -80,7 +80,7 @@ struct WorkoutSummaryView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Muscle Groups")
                                 .font(.headline)
-                                .foregroundColor(.white)
+                                .foregroundColor(.ironInk)
 
                             LazyVGrid(columns: [
                                 GridItem(.flexible()),
@@ -90,10 +90,10 @@ struct WorkoutSummaryView: View {
                                     Text(group.rawValue)
                                         .font(.subheadline)
                                         .fontWeight(.medium)
-                                        .foregroundColor(.white)
+                                        .foregroundColor(.ironInk)
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 8)
-                                        .background(Color.blue.opacity(0.3))
+                                        .background(Color.ironPrimary.opacity(0.3))
                                         .cornerRadius(8)
                                 }
                             }
@@ -103,11 +103,11 @@ struct WorkoutSummaryView: View {
                         VStack(spacing: 8) {
                             Text(formatDuration(session.duration))
                                 .font(.system(size: 48, weight: .bold, design: .rounded))
-                                .foregroundColor(.white)
+                                .foregroundColor(.ironInk)
 
                             Text("Duration")
                                 .font(.headline)
-                                .foregroundColor(.gray)
+                                .foregroundColor(.ironMuted)
                         }
                         .padding(.top, 20)
 
@@ -118,10 +118,10 @@ struct WorkoutSummaryView: View {
                             Text("Done")
                                 .font(.headline)
                                 .fontWeight(.bold)
-                                .foregroundColor(.white)
+                                .foregroundColor(.ironOnPrimary)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 16)
-                                .background(Color.blue)
+                                .background(Color.ironPrimary)
                                 .cornerRadius(12)
                         }
                         .padding(.horizontal)
@@ -137,7 +137,7 @@ struct WorkoutSummaryView: View {
                         HapticManager.light()
                         dismiss()
                     }
-                    .foregroundColor(.gray)
+                    .foregroundColor(.ironMuted)
                 }
             }
         }
@@ -179,18 +179,18 @@ struct SummaryRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.caption)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.ironMuted)
 
                 Text(value)
                     .font(.title3)
                     .fontWeight(.bold)
-                    .foregroundColor(.white)
+                    .foregroundColor(.ironInk)
             }
 
             Spacer()
         }
         .padding()
-        .background(Color.gray.opacity(0.1))
+        .background(Color.ironMuted.opacity(0.1))
         .cornerRadius(12)
     }
 }
