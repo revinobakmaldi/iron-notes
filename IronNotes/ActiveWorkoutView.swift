@@ -7,7 +7,6 @@ struct ActiveWorkoutView: View {
     @Environment(AppSettings.self) private var settings
     @Environment(\.dismiss) private var dismiss
 
-    @State private var showRestTimer = false
     @State private var showAddExercise = false
     @State private var showFinishWorkout = false
     @State private var showSummary = false
@@ -104,13 +103,6 @@ struct ActiveWorkoutView: View {
                         }
                     }
                 }
-            }
-
-            if showRestTimer {
-                RestTimerView(duration: settings.restTimerDuration) {
-                    showRestTimer = false
-                }
-                .transition(.opacity)
             }
         }
         .navigationTitle("Active Workout")
@@ -213,7 +205,7 @@ struct ActiveWorkoutView: View {
             sessionDate: session.date
         )
 
-        showRestTimer = true
+        TimerManager.shared.startTimer(duration: settings.restTimerDuration)
     }
 
     private func finishWorkout() {

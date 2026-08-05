@@ -9,6 +9,7 @@ class TimerManager {
     private(set) var remainingTime: Int = 0
     private(set) var totalTime: Int = 0
     private(set) var isActive: Bool = false
+    private(set) var isVisible: Bool = false
 
     private var timer: Timer?
     private var startTime: Date?
@@ -21,6 +22,7 @@ class TimerManager {
         remainingTime = duration
         totalTime = duration
         isActive = true
+        isVisible = true
         startTime = Date()
         targetEndTime = Date().addingTimeInterval(TimeInterval(duration))
 
@@ -35,10 +37,9 @@ class TimerManager {
         isActive = false
         cancelNotification()
 
-        if let start = startTime, targetEndTime != nil {
-            let elapsed = Int(Date().timeIntervalSince(start))
-            remainingTime = max(0, remainingTime - elapsed)
-            targetEndTime = nil
+        if let targetEndTime = targetEndTime {
+            remainingTime = remainingSeconds(until: targetEndTime)
+            self.targetEndTime = nil
         }
     }
 
@@ -64,6 +65,7 @@ class TimerManager {
         timer?.invalidate()
         timer = nil
         isActive = false
+        isVisible = false
         remainingTime = 0
         startTime = nil
         targetEndTime = nil
@@ -120,7 +122,7 @@ class TimerManager {
     private func updateTimer() {
         guard isActive, let targetEndTime = targetEndTime else { return }
 
-        let newRemainingTime = max(0, Int(targetEndTime.timeIntervalSinceNow))
+        let newRemainingTime = remainingSeconds(until: targetEndTime)
 
         if newRemainingTime != remainingTime {
             remainingTime = newRemainingTime
@@ -139,8 +141,12 @@ class TimerManager {
 
     private func calculateRemainingTime() {
         if isActive, let targetEndTime = targetEndTime {
-            remainingTime = max(0, Int(targetEndTime.timeIntervalSinceNow))
+            remainingTime = remainingSeconds(until: targetEndTime)
         }
+    }
+
+    private func remainingSeconds(until targetEndTime: Date) -> Int {
+        max(0, Int(ceil(targetEndTime.timeIntervalSinceNow)))
     }
 
     private func scheduleCompletionNotification() {

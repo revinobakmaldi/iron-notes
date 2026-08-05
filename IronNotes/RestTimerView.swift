@@ -3,12 +3,10 @@ import SwiftUI
 struct RestTimerView: View {
     @State private var timerManager = TimerManager.shared
     @Environment(\.scenePhase) private var scenePhase
-    @State private var duration: Int
-    var onDismiss: () -> Void
 
-    init(duration: Int = 90, onDismiss: @escaping () -> Void) {
-        self.duration = duration
-        self.onDismiss = onDismiss
+    private var progress: CGFloat {
+        guard timerManager.totalTime > 0 else { return 0 }
+        return CGFloat(timerManager.remainingTime) / CGFloat(timerManager.totalTime)
     }
 
     var body: some View {
@@ -22,7 +20,7 @@ struct RestTimerView: View {
                         .stroke(Color.ironMuted.opacity(0.3), lineWidth: 8)
 
                     Circle()
-                        .trim(from: 0, to: CGFloat(timerManager.remainingTime) / CGFloat(timerManager.totalTime))
+                        .trim(from: 0, to: progress)
                         .stroke(Color.ironPrimary, style: StrokeStyle(lineWidth: 8, lineCap: .round))
                         .rotationEffect(Angle(degrees: -90))
                         .animation(.easeInOut(duration: 1), value: timerManager.remainingTime)
@@ -68,9 +66,6 @@ struct RestTimerView: View {
                 .frame(minWidth: 44, minHeight: 44)
             }
         }
-        .onAppear {
-            timerManager.startTimer(duration: duration)
-        }
         .onChange(of: scenePhase) { _, newPhase in
             switch newPhase {
             case .background:
@@ -91,6 +86,5 @@ struct RestTimerView: View {
 
     private func dismiss() {
         timerManager.stopTimer()
-        onDismiss()
     }
 }
