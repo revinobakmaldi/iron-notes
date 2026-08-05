@@ -19,12 +19,26 @@ struct AnalyticsView: View {
         last7DaysSessions.count
     }
 
+    var lastCompletedWorkout: WorkoutSession? {
+        sessions.filter { $0.isCompleted }.sorted { $0.date > $1.date }.first
+    }
+
+    var hasCompletedWorkoutToday: Bool {
+        sessions.contains { session in
+            session.isCompleted && Calendar.current.isDateInToday(session.date)
+        }
+    }
+
     var daysSinceLastWorkout: Int {
-        guard let lastWorkout = sessions.filter({ $0.isCompleted }).sorted(by: { $0.date > $1.date }).first else {
+        guard let lastWorkout = lastCompletedWorkout else {
             return 999
         }
-        let days = Calendar.current.dateComponents([.day], from: lastWorkout.date, to: Date()).day ?? 0
-        return days
+
+        let calendar = Calendar.current
+        let lastWorkoutDay = calendar.startOfDay(for: lastWorkout.date)
+        let today = calendar.startOfDay(for: Date())
+        let days = calendar.dateComponents([.day], from: lastWorkoutDay, to: today).day ?? 0
+        return max(0, days)
     }
 
     var longestUntrainedMuscle: (group: MuscleGroup, days: Int)? {
@@ -84,7 +98,7 @@ struct AnalyticsView: View {
         }
 
         // Priority 3: Worked out today
-        if daysSinceLastWorkout == 0 {
+        if hasCompletedWorkoutToday {
             return pick([
                 "Already crushed it today. Legend.",
                 "Double session? Respect.",
@@ -211,7 +225,7 @@ struct AnalyticsView: View {
                     Text("Ready to start?")
                         .font(.subheadline)
                         .foregroundColor(.ironPrimary)
-                } else if daysSinceLastWorkout == 0 {
+                } else if hasCompletedWorkoutToday {
                     Text("Last workout: Today!")
                         .font(.subheadline)
                         .foregroundColor(.ironSuccess)
