@@ -52,7 +52,7 @@ struct ExerciseCard: View {
                     .foregroundColor(.ironSuccess)
             }
 
-            if exercise.sets.isEmpty {
+            if exercise.uniqueSets.isEmpty {
                 Text("No sets logged yet")
                     .font(.subheadline)
                     .foregroundColor(.ironMuted)
@@ -163,7 +163,7 @@ struct ExerciseCard: View {
     private var numberedSets: [(displayNumber: String, set: SetEntry)] {
         var nextSetNumber = 1
 
-        return exercise.sets
+        return exercise.uniqueSets
             .sorted { $0.timestamp < $1.timestamp }
             .map { set in
                 let startNumber = nextSetNumber
@@ -178,13 +178,14 @@ struct ExerciseCard: View {
     }
 
     private var previousSessionSummary: some View {
-        let totalSets = previousSets.reduce(0) { $0 + $1.setCount }
-        let totalReps = previousSets.reduce(0) { $0 + ($1.reps * $1.setCount) }
+        let uniquePreviousSets = previousSets.uniquedByID()
+        let totalSets = uniquePreviousSets.reduce(0) { $0 + $1.setCount }
+        let totalReps = uniquePreviousSets.reduce(0) { $0 + ($1.reps * $1.setCount) }
         let assisted = PRCalculator.isAssistedExercise(exercise.exerciseName)
         let bestWeight = assisted
-            ? (previousSets.map(\.weight).min() ?? 0)
-            : (previousSets.map(\.weight).max() ?? 0)
-        let hasPR = previousSets.contains { $0.isPR }
+            ? (uniquePreviousSets.map(\.weight).min() ?? 0)
+            : (uniquePreviousSets.map(\.weight).max() ?? 0)
+        let hasPR = uniquePreviousSets.contains { $0.isPR }
 
         return HStack(spacing: 16) {
             SummaryItem(

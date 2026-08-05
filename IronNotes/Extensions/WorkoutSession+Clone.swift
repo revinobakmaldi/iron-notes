@@ -15,12 +15,11 @@ extension WorkoutSession {
 
         let newSession = WorkoutSession(date: Date())
 
-        for exercise in sessionToClone.exercises {
+        for exercise in sessionToClone.uniqueExercises {
             let clonedExercise = ExerciseLog(
                 name: exercise.exerciseName,
                 muscleGroup: exercise.muscleGroup
             )
-            clonedExercise.session = newSession
             newSession.exercises.append(clonedExercise)
         }
 
@@ -36,12 +35,14 @@ extension WorkoutSession {
             return []
         }
 
-        let previousSessions = allSessions.filter { $0.id != self.id }
+        let previousSessions = allSessions.filter {
+            $0.id != self.id && $0.date < self.date
+        }
 
         for session in previousSessions {
-            for exercise in session.exercises {
+            for exercise in session.uniqueExercises {
                 if exercise.exerciseName == exerciseName {
-                    return exercise.sets
+                    return exercise.uniqueSets
                 }
             }
         }

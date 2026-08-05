@@ -210,10 +210,10 @@ final class HealthSyncManager {
     }
 
     private func exerciseSummary(for session: WorkoutSession) -> String {
-        session.exercises
+        session.uniqueExercises
             .sorted { $0.exerciseName < $1.exerciseName }
             .map { exercise in
-                let setCount = exercise.sets.reduce(0) { $0 + $1.setCount }
+                let setCount = exercise.uniqueSets.reduce(0) { $0 + $1.setCount }
                 return "\(exercise.exerciseName): \(setCount) sets"
             }
             .joined(separator: "\n")

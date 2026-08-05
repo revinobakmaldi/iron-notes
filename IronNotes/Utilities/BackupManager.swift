@@ -18,7 +18,7 @@ struct BackupSettings: Codable {
     var masterExercises: [String: [MasterExercise]]
 }
 
-struct BackupWorkoutSession: Codable {
+struct BackupWorkoutSession: Codable, Identifiable {
     var id: UUID
     var date: Date
     var notes: String
@@ -28,14 +28,14 @@ struct BackupWorkoutSession: Codable {
     var exercises: [BackupExerciseLog]
 }
 
-struct BackupExerciseLog: Codable {
+struct BackupExerciseLog: Codable, Identifiable {
     var id: UUID
     var exerciseName: String
     var muscleGroup: MuscleGroup
     var sets: [BackupSetEntry]
 }
 
-struct BackupSetEntry: Codable {
+struct BackupSetEntry: Codable, Identifiable {
     var id: UUID
     var weight: Double
     var reps: Int
@@ -149,7 +149,7 @@ enum BackupManager {
             duration: session.duration,
             isCompleted: session.isCompleted,
             healthKitWorkoutID: session.healthKitWorkoutID,
-            exercises: session.exercises
+            exercises: session.uniqueExercises
                 .sorted { $0.exerciseName < $1.exerciseName }
                 .map(backupExercise)
         )
@@ -160,7 +160,7 @@ enum BackupManager {
             id: exercise.id,
             exerciseName: exercise.exerciseName,
             muscleGroup: exercise.muscleGroup,
-            sets: exercise.sets
+            sets: exercise.uniqueSets
                 .sorted { $0.timestamp < $1.timestamp }
                 .map(backupSet)
         )
@@ -185,11 +185,7 @@ enum BackupManager {
         session.isCompleted = backup.isCompleted
         session.healthKitWorkoutID = backup.healthKitWorkoutID
 
-        session.exercises = backup.exercises.map { backupExercise in
-            let exercise = makeExercise(from: backupExercise)
-            exercise.session = session
-            return exercise
-        }
+        session.exercises = backup.exercises.uniquedByID().map { makeExercise(from: $0) }
 
         return session
     }
@@ -198,11 +194,7 @@ enum BackupManager {
         let exercise = ExerciseLog(name: backup.exerciseName, muscleGroup: backup.muscleGroup)
         exercise.id = backup.id
 
-        exercise.sets = backup.sets.map { backupSet in
-            let set = makeSet(from: backupSet)
-            set.exercise = exercise
-            return set
-        }
+        exercise.sets = backup.sets.uniquedByID().map { makeSet(from: $0) }
 
         return exercise
     }

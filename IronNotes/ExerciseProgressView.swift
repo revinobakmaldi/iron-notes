@@ -15,10 +15,10 @@ struct ExerciseProgressView: View {
 
     private var completedExerciseSessions: [ExerciseSessionProgress] {
         sessions
-            .filter { $0.isCompleted || !$0.exercises.isEmpty }
+            .filter { $0.isCompleted || !$0.uniqueExercises.isEmpty }
             .compactMap { session in
-                let matchingExercises = session.exercises.filter { $0.exerciseName == exerciseName }
-                let sets = matchingExercises.flatMap(\.sets)
+                let matchingExercises = session.uniqueExercises.filter { $0.exerciseName == exerciseName }
+                let sets = matchingExercises.flatMap(\.uniqueSets).uniquedByID()
                 guard !sets.isEmpty else { return nil }
 
                 return ExerciseSessionProgress(

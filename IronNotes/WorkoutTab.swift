@@ -232,14 +232,14 @@ struct SessionCard: View {
     ]
 
     private var totalSets: Int {
-        session.exercises.reduce(0) { total, exercise in
-            total + exercise.sets.reduce(0) { $0 + $1.setCount }
+        session.uniqueExercises.reduce(0) { total, exercise in
+            total + exercise.uniqueSets.reduce(0) { $0 + $1.setCount }
         }
     }
 
     private var uniqueMuscleGroups: [MuscleGroup] {
         var seen = Set<MuscleGroup>()
-        return session.exercises.compactMap { exercise in
+        return session.uniqueExercises.compactMap { exercise in
             seen.insert(exercise.muscleGroup).inserted ? exercise.muscleGroup : nil
         }
     }
@@ -276,7 +276,7 @@ struct SessionCard: View {
                 }
 
                 HStack(spacing: 4) {
-                    Text("\(session.exercises.count) exercises")
+                    Text("\(session.uniqueExercises.count) exercises")
                     Text("·").foregroundColor(.ironMuted.opacity(0.6))
                     Text("\(totalSets) sets")
                     if session.duration > 0 {
@@ -302,9 +302,9 @@ struct SessionCard: View {
                     }
                 }
 
-                if !session.exercises.isEmpty {
+                if !session.uniqueExercises.isEmpty {
                     VStack(alignment: .leading, spacing: 4) {
-                        ForEach(session.exercises.prefix(3)) { exercise in
+                        ForEach(session.uniqueExercises.prefix(3)) { exercise in
                             HStack(spacing: 6) {
                                 Circle()
                                     .fill(muscleGroupColors[exercise.muscleGroup] ?? .blue)
@@ -315,8 +315,8 @@ struct SessionCard: View {
                             }
                         }
 
-                        if session.exercises.count > 3 {
-                            Text("+ \(session.exercises.count - 3) more")
+                        if session.uniqueExercises.count > 3 {
+                            Text("+ \(session.uniqueExercises.count - 3) more")
                                 .font(.caption)
                                 .foregroundColor(.ironMuted.opacity(0.6))
                         }

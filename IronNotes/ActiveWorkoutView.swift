@@ -47,7 +47,7 @@ struct ActiveWorkoutView: View {
                         .padding(.horizontal)
                         .padding(.top, 10)
 
-                        if session.exercises.isEmpty {
+                        if session.uniqueExercises.isEmpty {
                             VStack(spacing: 20) {
                                 Image(systemName: "figure.strengthtraining.traditional")
                                     .font(.system(size: 60))
@@ -66,7 +66,7 @@ struct ActiveWorkoutView: View {
                             .padding(.top, 40)
                         } else {
                             VStack(spacing: 16) {
-                                ForEach(session.exercises) { exercise in
+                                ForEach(session.uniqueExercises) { exercise in
                                     let previousSets = session.getPreviousSessionData(
                                         exerciseName: exercise.exerciseName,
                                         context: modelContext
@@ -154,7 +154,7 @@ struct ActiveWorkoutView: View {
                 dismiss()
             }
         }
-        .onChange(of: session.exercises.map(\.id)) { _, exerciseIDs in
+        .onChange(of: session.uniqueExercises.map(\.id)) { _, exerciseIDs in
             selectedExerciseID = exerciseIDs.last
         }
         .alert("Finish Workout", isPresented: $showFinishWorkout) {
@@ -168,10 +168,11 @@ struct ActiveWorkoutView: View {
     }
 
     private func getSelectedExercise() -> ExerciseLog? {
+        let exercises = session.uniqueExercises
         guard let selectedID = selectedExerciseID else {
-            return session.exercises.last
+            return exercises.last
         }
-        return session.exercises.first { $0.id == selectedID } ?? session.exercises.last
+        return exercises.first { $0.id == selectedID } ?? exercises.last
     }
 
     private func getPreviousSetsForSelectedExercise() -> [SetEntry] {
@@ -203,7 +204,6 @@ struct ActiveWorkoutView: View {
             isSingleArm: isSingleArm
         )
 
-        setEntry.exercise = exercise
         exercise.sets.append(setEntry)
 
         PRCalculator.checkAndMarkPR(
@@ -359,7 +359,6 @@ struct AddExerciseSheet: View {
             name: name,
             muscleGroup: muscleGroup
         )
-        exercise.session = session
         session.exercises.append(exercise)
 
         HapticManager.success()

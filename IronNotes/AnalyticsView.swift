@@ -36,7 +36,7 @@ struct AnalyticsView: View {
 
         for muscle in MuscleGroup.selectableCases {
             let lastTrained = completedSessions
-                .filter { session in session.exercises.contains { $0.muscleGroup == muscle } }
+                .filter { session in session.uniqueExercises.contains { $0.muscleGroup == muscle } }
                 .map(\.date)
                 .max()
 
@@ -241,7 +241,7 @@ struct AnalyticsView: View {
                         Text("Resume Workout")
                             .font(.headline)
                         Spacer()
-                        Text(activeSession.exercises.count > 0 ? "\(activeSession.exercises.count) exercises" : "New")
+                        Text(activeSession.uniqueExercises.count > 0 ? "\(activeSession.uniqueExercises.count) exercises" : "New")
                             .font(.subheadline)
                             .foregroundColor(.ironOnPrimary.opacity(0.7))
                     }
@@ -381,8 +381,8 @@ struct AnalyticsView: View {
         var setsPerMuscle: [MuscleGroup: Int] = [:]
 
         for session in last7DaysSessions {
-            for exercise in session.exercises {
-                setsPerMuscle[exercise.muscleGroup, default: 0] += exercise.sets.reduce(0) { $0 + $1.setCount }
+            for exercise in session.uniqueExercises {
+                setsPerMuscle[exercise.muscleGroup, default: 0] += exercise.uniqueSets.reduce(0) { $0 + $1.setCount }
             }
         }
 
@@ -478,9 +478,9 @@ struct AnalyticsView: View {
         var priorMaxes: [String: Double] = [:]
 
         for session in last7DaysSessions {
-            for exercise in session.exercises {
+            for exercise in session.uniqueExercises {
                 let isAssisted = PRCalculator.isAssistedExercise(exercise.exerciseName)
-                let weights = exercise.sets.map(\.weight).filter { $0 > 0 }
+                let weights = exercise.uniqueSets.map(\.weight).filter { $0 > 0 }
                 guard !weights.isEmpty else { continue }
 
                 let best = isAssisted ? weights.min()! : weights.max()!
@@ -502,9 +502,9 @@ struct AnalyticsView: View {
         }
 
         for session in priorSessions {
-            for exercise in session.exercises {
+            for exercise in session.uniqueExercises {
                 let isAssisted = PRCalculator.isAssistedExercise(exercise.exerciseName)
-                let weights = exercise.sets.map(\.weight).filter { $0 > 0 }
+                let weights = exercise.uniqueSets.map(\.weight).filter { $0 > 0 }
                 guard !weights.isEmpty else { continue }
 
                 let best = isAssisted ? weights.min()! : weights.max()!
@@ -769,7 +769,7 @@ struct AnalyticsView: View {
                         Image(systemName: "figure.strengthtraining.traditional")
                             .font(.title3)
                             .foregroundColor(.ironSecondaryAccent)
-                        Text("\(last7DaysSessions.reduce(0) { $0 + $1.exercises.count })")
+                        Text("\(last7DaysSessions.reduce(0) { $0 + $1.uniqueExercises.count })")
                             .font(.headline)
                             .fontWeight(.bold)
                             .foregroundColor(.ironInk)
@@ -809,10 +809,10 @@ struct AnalyticsView: View {
 
         for session in last7DaysSessions {
             let sessionDay = calendar.startOfDay(for: session.date)
-            for exercise in session.exercises {
+            for exercise in session.uniqueExercises {
                 let isAssisted = PRCalculator.isAssistedExercise(exercise.exerciseName)
                 if isAssisted { continue }
-                for set in exercise.sets where set.weight > 0 {
+                for set in exercise.uniqueSets where set.weight > 0 {
                     if let existing = topPerSession[sessionDay] {
                         if set.weight > existing.weight {
                             topPerSession[sessionDay] = TopSet(

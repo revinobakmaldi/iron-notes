@@ -16,11 +16,11 @@ struct SmartParserInput: View {
     @State private var inputText = ""
 
     var lastSet: SetEntry? {
-        exercise?.sets.sorted(by: { $0.timestamp > $1.timestamp }).first
+        exercise?.uniqueSets.sorted(by: { $0.timestamp > $1.timestamp }).first
     }
 
     var previousSessionLastSet: SetEntry? {
-        previousSets.sorted(by: { $0.timestamp > $1.timestamp }).first
+        previousSets.uniquedByID().sorted(by: { $0.timestamp > $1.timestamp }).first
     }
 
     var suggestedSet: SetEntry? {
@@ -325,7 +325,7 @@ struct SmartParserInput: View {
     }
 
     private var setNumberDisplay: some View {
-        let completedSets = exercise?.sets.reduce(0) { $0 + $1.setCount } ?? 0
+        let completedSets = exercise?.uniqueSets.reduce(0) { $0 + $1.setCount } ?? 0
         let nextSetNumber = completedSets + 1
         return HStack(spacing: 12) {
             Text("Set #\(nextSetNumber)")
@@ -407,8 +407,7 @@ struct SmartParserInput: View {
 
     private func parserText(for set: SetEntry) -> String {
         let singleArmPrefix = set.isSingleArm ? "SA " : ""
-        let setSuffix = set.setCount > 1 ? "x\(set.setCount)" : ""
-        return "\(singleArmPrefix)\(formatWeight(set.weight))x\(set.reps)\(setSuffix)"
+        return "\(singleArmPrefix)\(formatWeight(set.weight))x\(set.reps)"
     }
 
     private func formatWeight(_ weight: Double) -> String {

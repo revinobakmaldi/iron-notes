@@ -38,6 +38,12 @@ final class WorkoutSession {
     }
 }
 
+extension WorkoutSession {
+    var uniqueExercises: [ExerciseLog] {
+        exercises.uniquedByID()
+    }
+}
+
 @Model
 final class ExerciseLog {
     var id: UUID
@@ -55,7 +61,13 @@ final class ExerciseLog {
     }
 
     var estimated1RM: Double {
-        sets.map { $0.estimated1RM }.max() ?? 0.0
+        uniqueSets.map { $0.estimated1RM }.max() ?? 0.0
+    }
+}
+
+extension ExerciseLog {
+    var uniqueSets: [SetEntry] {
+        sets.uniquedByID()
     }
 }
 
@@ -96,5 +108,14 @@ struct MasterExercise: Identifiable, Codable {
         self.name = name
         self.defaultWeight = defaultWeight
         self.defaultReps = defaultReps
+    }
+}
+
+extension Array where Element: Identifiable, Element.ID: Hashable {
+    func uniquedByID() -> [Element] {
+        var seen = Set<Element.ID>()
+        return filter { element in
+            seen.insert(element.id).inserted
+        }
     }
 }

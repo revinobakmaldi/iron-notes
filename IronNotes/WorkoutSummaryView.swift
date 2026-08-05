@@ -7,25 +7,25 @@ struct WorkoutSummaryView: View {
     @Environment(AppSettings.self) private var settings
 
     var totalSets: Int {
-        session.exercises.reduce(0) { total, exercise in
-            total + exercise.sets.reduce(0) { $0 + $1.setCount }
+        session.uniqueExercises.reduce(0) { total, exercise in
+            total + exercise.uniqueSets.reduce(0) { $0 + $1.setCount }
         }
     }
 
     var totalVolume: Double {
-        session.exercises.reduce(0.0) { sum, exercise in
-            sum + exercise.sets.reduce(0.0) { setSum, set in
+        session.uniqueExercises.reduce(0.0) { sum, exercise in
+            sum + exercise.uniqueSets.reduce(0.0) { setSum, set in
                 setSum + (set.weight * Double(set.reps) * Double(set.setCount))
             }
         }
     }
 
     var muscleGroups: [MuscleGroup] {
-        Array(Set(session.exercises.map { $0.muscleGroup }))
+        Array(Set(session.uniqueExercises.map { $0.muscleGroup }))
     }
 
     var prCount: Int {
-        session.exercises.reduce(0) { $0 + $1.sets.filter { $0.isPR }.count }
+        session.uniqueExercises.reduce(0) { $0 + $1.uniqueSets.filter { $0.isPR }.count }
     }
 
     var body: some View {
@@ -51,7 +51,7 @@ struct WorkoutSummaryView: View {
                             SummaryRow(
                                 icon: "figure.strengthtraining.traditional",
                                 title: "Exercises",
-                                value: "\(session.exercises.count)"
+                                value: "\(session.uniqueExercises.count)"
                             )
 
                             SummaryRow(
