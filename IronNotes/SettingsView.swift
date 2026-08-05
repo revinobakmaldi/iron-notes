@@ -8,14 +8,22 @@ struct SettingsView: View {
         case bodyWeight
     }
 
+    private struct EditableExercise: Identifiable {
+        let exercise: MasterExercise
+        let muscleGroup: MuscleGroup
+
+        var id: UUID {
+            exercise.id
+        }
+    }
+
     @Environment(\.modelContext) private var modelContext
     @Environment(AppSettings.self) private var settings
     @Query(sort: \WorkoutSession.date, order: .reverse) private var sessions: [WorkoutSession]
 
     @State private var selectedMuscleGroup = MuscleGroup.CHEST
     @State private var showAddExercise = false
-    @State private var exerciseToEdit: (exercise: MasterExercise, muscleGroup: MuscleGroup)?
-    @State private var showEditExercise = false
+    @State private var exerciseToEdit: EditableExercise?
     @State private var backupDocument = BackupDocument()
     @State private var showExporter = false
     @State private var showImporter = false
@@ -234,10 +242,8 @@ struct SettingsView: View {
         .sheet(isPresented: $showAddExercise) {
             NewExerciseSheet(muscleGroup: selectedMuscleGroup)
         }
-        .sheet(isPresented: $showEditExercise) {
-            if let exerciseToEdit = exerciseToEdit {
-                EditExerciseSheet(exercise: exerciseToEdit.exercise, muscleGroup: exerciseToEdit.muscleGroup)
-            }
+        .sheet(item: $exerciseToEdit) { exerciseToEdit in
+            EditExerciseSheet(exercise: exerciseToEdit.exercise, muscleGroup: exerciseToEdit.muscleGroup)
         }
         .fileExporter(
             isPresented: $showExporter,
@@ -434,8 +440,7 @@ struct SettingsView: View {
             Spacer()
 
             Button(action: {
-                exerciseToEdit = (exercise, muscleGroup)
-                showEditExercise = true
+                exerciseToEdit = EditableExercise(exercise: exercise, muscleGroup: muscleGroup)
             }) {
                 Image(systemName: "pencil.circle.fill")
                     .font(.system(size: 16))
