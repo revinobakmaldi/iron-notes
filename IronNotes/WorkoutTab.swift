@@ -344,41 +344,88 @@ struct NewWorkoutSheet: View {
 
     var body: some View {
         NavigationView {
-            Form {
-                Section {
-                    Button("Start Fresh") {
-                        startWorkout(cloneLast: false, customDate: nil)
-                    }
-                    .foregroundColor(.ironPrimary)
+            ZStack {
+                Color.ironBackground.ignoresSafeArea()
 
-                    Button("Clone Last Workout") {
-                        startWorkout(cloneLast: true, customDate: nil)
+                VStack(spacing: 28) {
+                    HStack {
+                        Button(action: {
+                            dismiss()
+                        }) {
+                            Text("Cancel")
+                                .font(.headline)
+                                .foregroundColor(.ironPrimary)
+                                .padding(.horizontal, 18)
+                                .frame(height: 48)
+                                .background(Color.ironSurface)
+                                .overlay(
+                                    Capsule()
+                                        .stroke(Color.ironSurfaceMuted, lineWidth: 1)
+                                )
+                                .clipShape(Capsule())
+                        }
+                        .frame(minWidth: 44, minHeight: 44)
+
+                        Spacer()
+
+                        Text("New Workout")
+                            .font(.title3)
+                            .fontWeight(.bold)
+                            .foregroundColor(.ironInk)
+
+                        Spacer()
+
+                        Color.clear
+                            .frame(width: 88, height: 48)
                     }
-                    .foregroundColor(.ironPrimary)
-                    
-                    Button("Backdate Session") {
-                        showDatePicker = true
+                    .padding(.horizontal, 24)
+                    .padding(.top, 20)
+
+                    VStack(spacing: 10) {
+                        NewWorkoutActionRow(
+                            icon: "plus",
+                            title: "Start Fresh",
+                            tint: .ironPrimary
+                        ) {
+                            startWorkout(cloneLast: false, customDate: nil)
+                        }
+
+                        NewWorkoutActionRow(
+                            icon: "doc.on.doc",
+                            title: "Clone Last Workout",
+                            tint: .ironPrimary
+                        ) {
+                            startWorkout(cloneLast: true, customDate: nil)
+                        }
+
+                        NewWorkoutActionRow(
+                            icon: "calendar.badge.clock",
+                            title: "Backdate Session",
+                            tint: .ironAccent
+                        ) {
+                            showDatePicker = true
+                        }
                     }
-                    .foregroundColor(.ironAccent)
+                    .padding(8)
+                    .background(Color.ironSurface)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 28)
+                            .stroke(Color.ironSurfaceMuted, lineWidth: 1)
+                    )
+                    .cornerRadius(28)
+                    .padding(.horizontal, 24)
+
+                    Spacer()
                 }
             }
-            .scrollContentBackground(.hidden)
-            .background(Color.ironBackground)
-            .navigationTitle("New Workout")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
-            }
+            .navigationBarHidden(true)
             .sheet(isPresented: $showDatePicker) {
                 DatePickerSheet(selectedDate: $selectedDate) { startDate, duration in
                     startWorkout(cloneLast: false, customDate: startDate, customDuration: duration)
                 }
             }
         }
+        .preferredColorScheme(.light)
     }
 
     private func startWorkout(cloneLast: Bool, customDate: Date?, customDuration: Int = 0) {
@@ -406,6 +453,47 @@ struct NewWorkoutSheet: View {
         modelContext.insert(session)
         isPresented = false
         dismiss()
+    }
+}
+
+private struct NewWorkoutActionRow: View {
+    let icon: String
+    let title: String
+    let tint: Color
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: {
+            HapticManager.light()
+            action()
+        }) {
+            HStack(spacing: 14) {
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(tint)
+                    .frame(width: 38, height: 38)
+                    .background(tint.opacity(0.10))
+                    .clipShape(Circle())
+
+                Text(title)
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(tint)
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .foregroundColor(.ironMuted)
+            }
+            .padding(.horizontal, 16)
+            .frame(height: 62)
+            .background(Color.ironSurface)
+            .cornerRadius(20)
+        }
+        .buttonStyle(.plain)
+        .frame(minHeight: 44)
     }
 }
 

@@ -264,88 +264,132 @@ struct AddExerciseSheet: View {
 
     var body: some View {
         NavigationView {
-            VStack(spacing: 0) {
-                Picker("Muscle Group", selection: $selectedMuscleGroup) {
-                    ForEach(MuscleGroup.selectableCases, id: \.self) { group in
-                        Text(group.rawValue).tag(group)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding()
-                .background(Color.ironMuted.opacity(0.05))
+            ZStack {
+                Color.ironBackground.ignoresSafeArea()
 
-                List {
-                    if filteredExercises.isEmpty && !searchText.isEmpty {
-                        Text("No master exercises for \(selectedMuscleGroup.rawValue)")
-                            .foregroundColor(.ironMuted)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding()
-                    } else if filteredExercises.isEmpty {
-                        Text("No exercises found")
-                            .foregroundColor(.ironMuted)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding()
-                    } else {
-                        ForEach(filteredExercises) { exercise in
-                            Button(action: {
-                                HapticManager.light()
-                                addExercise(name: exercise.name, muscleGroup: selectedMuscleGroup)
-                            }) {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(exercise.name)
-                                            .font(.headline)
-                                            .foregroundColor(.primary)
-
-                                        if exercise.defaultWeight > 0 {
-                                            HStack(spacing: 4) {
-                                                Text("\(formatWeight(exercise.defaultWeight))\(settings.preferredUnit.rawValue)")
-                                                    .font(.caption)
-                                                    .foregroundColor(.secondary)
-                                                Text("× \(exercise.defaultReps)")
-                                                    .font(.caption)
-                                                    .foregroundColor(.secondary)
-                                            }
-                                        }
-                                    }
-
-                                    Spacer()
-
-                                    Image(systemName: "plus.circle")
-                                        .foregroundColor(.ironPrimary)
-                                }
-                                .padding(.vertical, 12)
-                                .listRowBackground(Color.ironBackground)
-                            }
-                        }
-                    }
-                }
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
-                .background(Color.ironBackground)
-                .searchable(text: $searchText, prompt: "Search exercises")
-                .navigationTitle("Add Exercise")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Button("Cancel") {
-                            dismiss()
-                        }
-                    }
-
-                    ToolbarItem(placement: .navigationBarTrailing) {
+                VStack(spacing: 18) {
+                    HStack {
                         Button(action: {
+                            dismiss()
+                        }) {
+                            Text("Cancel")
+                                .font(.headline)
+                                .foregroundColor(.ironPrimary)
+                                .padding(.horizontal, 18)
+                                .frame(height: 48)
+                                .background(Color.ironSurface)
+                                .overlay(
+                                    Capsule()
+                                        .stroke(Color.ironSurfaceMuted, lineWidth: 1)
+                                )
+                                .clipShape(Capsule())
+                        }
+                        .frame(minWidth: 44, minHeight: 44)
+
+                        Spacer()
+
+                        Text("Add Exercise")
+                            .font(.title3)
+                            .fontWeight(.bold)
+                            .foregroundColor(.ironInk)
+
+                        Spacer()
+
+                        Button(action: {
+                            HapticManager.light()
                             showAddNewExercise = true
                         }) {
                             Image(systemName: "plus")
+                                .font(.system(size: 22, weight: .medium))
                                 .foregroundColor(.ironPrimary)
+                                .frame(width: 48, height: 48)
+                                .background(Color.ironSurface)
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color.ironSurfaceMuted, lineWidth: 1)
+                                )
+                                .clipShape(Circle())
                         }
                         .frame(minWidth: 44, minHeight: 44)
                     }
+                    .padding(.horizontal, 24)
+                    .padding(.top, 20)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(MuscleGroup.selectableCases, id: \.self) { group in
+                                MuscleGroupChip(
+                                    title: group.rawValue,
+                                    isSelected: selectedMuscleGroup == group
+                                ) {
+                                    HapticManager.light()
+                                    selectedMuscleGroup = group
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 24)
+                    }
+
+                    HStack(spacing: 12) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.headline)
+                            .foregroundColor(.ironMuted)
+
+                        TextField("Search exercises", text: $searchText)
+                            .textFieldStyle(.plain)
+                            .font(.headline)
+                            .foregroundColor(.ironInk)
+                            .autocorrectionDisabled()
+                    }
+                    .padding(.horizontal, 18)
+                    .frame(height: 56)
+                    .background(Color.ironSurface)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(Color.ironSurfaceMuted, lineWidth: 1)
+                    )
+                    .cornerRadius(20)
+                    .padding(.horizontal, 24)
+
+                    Group {
+                        if filteredExercises.isEmpty {
+                            VStack(spacing: 12) {
+                                Image(systemName: searchText.isEmpty ? "tray" : "magnifyingglass")
+                                    .font(.system(size: 30, weight: .medium))
+                                    .foregroundColor(.ironMuted)
+
+                                Text(searchText.isEmpty ? "No exercises in \(selectedMuscleGroup.rawValue)" : "No matches")
+                                    .font(.headline)
+                                    .foregroundColor(.ironInk)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 56)
+                        } else {
+                            ScrollView {
+                                LazyVStack(spacing: 10) {
+                                    ForEach(filteredExercises) { exercise in
+                                        ExercisePickerRow(
+                                            exercise: exercise,
+                                            unit: settings.preferredUnit.rawValue,
+                                            formatWeight: formatWeight
+                                        ) {
+                                            HapticManager.light()
+                                            addExercise(name: exercise.name, muscleGroup: selectedMuscleGroup)
+                                        }
+                                    }
+                                }
+                                .padding(.horizontal, 24)
+                                .padding(.bottom, 24)
+                            }
+                        }
+                    }
+
+                    Spacer(minLength: 0)
                 }
             }
-            .background(Color.ironBackground)
+            .navigationBarHidden(true)
         }
+        .preferredColorScheme(.light)
         .sheet(isPresented: $showAddNewExercise) {
             NewExerciseSheet(muscleGroup: selectedMuscleGroup)
         }
@@ -370,5 +414,75 @@ struct AddExerciseSheet: View {
             return "\(Int(weight))"
         }
         return String(format: "%.1f", weight)
+    }
+}
+
+private struct MuscleGroupChip: View {
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .foregroundColor(isSelected ? .ironOnPrimary : .ironPrimary)
+                .padding(.horizontal, 16)
+                .frame(height: 40)
+                .background(isSelected ? Color.ironPrimary : Color.ironSurface)
+                .overlay(
+                    Capsule()
+                        .stroke(Color.ironSurfaceMuted, lineWidth: isSelected ? 0 : 1)
+                )
+                .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .frame(minHeight: 44)
+    }
+}
+
+private struct ExercisePickerRow: View {
+    let exercise: MasterExercise
+    let unit: String
+    let formatWeight: (Double) -> String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 14) {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(exercise.name)
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.ironInk)
+                        .lineLimit(2)
+
+                    if exercise.defaultWeight > 0 {
+                        Text("\(formatWeight(exercise.defaultWeight))\(unit) x \(exercise.defaultReps)")
+                            .font(.caption)
+                            .foregroundColor(.ironMuted)
+                    }
+                }
+
+                Spacer(minLength: 12)
+
+                Image(systemName: "plus")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundColor(.ironOnPrimary)
+                    .frame(width: 34, height: 34)
+                    .background(Color.ironPrimary)
+                    .clipShape(Circle())
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 16)
+            .background(Color.ironSurface)
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(Color.ironSurfaceMuted, lineWidth: 1)
+            )
+            .cornerRadius(20)
+        }
+        .buttonStyle(.plain)
     }
 }
